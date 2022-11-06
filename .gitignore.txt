@@ -5,3 +5,5 @@
 .RDataTmp
 .Ruserdata
 .Rproj.user/
+data/
+gen/
