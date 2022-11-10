@@ -3,6 +3,8 @@ library(data.table)
 
 # load dataset
 artist_trackname <- fread("../../gen/temp/users_1month.csv", select = c(9, 11))
+artists <- fread("../../data/discogs_artists.csv", sep = "\t", select = c(1:3))
+tracks <- fread("../../data/discogs_tracks.csv", sep = "\t", select = c(1, 4, 5))
 
 # unique values in artist & tracks
 artists_unique_largedf <- unique(artists$artistname)
