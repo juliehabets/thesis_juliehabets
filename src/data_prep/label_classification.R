@@ -14,3 +14,9 @@ names(total_label)[c(1,2,3)] <- c("artist", "track_name", "label")
 labels <- unique(total_label$label)
 
 classified_labels <- data.frame(label=labels, parent_label = classify_labels(labels, concatenate = T))
+
+total_label <- full_join(total_label, classified_labels, by = "label")
+total_label <- total_label[!duplicated(total_label), ]
+
+# write to csv
+write.csv(total_label, "../../gen/temp/label_classification.csv")
