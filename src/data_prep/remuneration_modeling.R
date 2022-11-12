@@ -1,12 +1,12 @@
 library(dplyr)
-library(readr)
+library(data.table)
 library(DescTools)
 library(tidyr)
 library(magrittr)
 library(ineq)
 
 # load data 
-users_1month <- read_csv("../../gen/temp/users_1month.csv")
+users_1month <- fread("../../gen/temp/users_1month.csv")
 
 # removing columns for better overview
 users_1month <- users_1month[c(2, 8:12)]

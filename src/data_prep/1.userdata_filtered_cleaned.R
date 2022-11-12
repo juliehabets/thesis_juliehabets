@@ -1,10 +1,10 @@
-library(readr)
+library(data.table)
 library(dplyr)
 library(lubridate)
 
 #load data
-userdata_1k <- read_csv("../../data/userdata_1k.csv")
-userinfo_filtered <- read_csv("../../gen/temp/userinfo_filtered.csv")
+userdata_1k <- fread("../../data/userdata_1k.csv")
+userinfo_filtered <- fread("../../gen/temp/userinfo_filtered.csv")
 
 #remove columns 
 userdata_1k <- userdata_1k[-c(1)]
