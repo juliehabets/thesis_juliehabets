@@ -20,5 +20,3 @@ names(artists_labels_notrack)[3] <- "artist"
 
 # write to csv
 write.csv(artists_labels_notrack, "../../gen/temp/artists_labels_notrack.csv")
-
-

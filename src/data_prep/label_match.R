@@ -3,7 +3,7 @@ library(data.table)
 
 # load dataset
 artist_trackname <- fread("../../gen/temp/users_1month.csv", select = c(9, 11))
-artists <- fread("../../data/discogs_artists.csv", sep = "\t", select = c(1:3))
+artists <- fread("../../data/discogs_artists.csv", sep = "\t", select = c(1:3), quote = "")
 tracks <- fread("../../data/discogs_tracks.csv", sep = "\t", select = c(1, 4, 5), quote = "")
 
 # unique values in artist & tracks
@@ -12,7 +12,10 @@ artists_unique_largedf_realname  <- unique(artists$realname)
 
 tracks_unique_largedf <- unique(tracks$trackname)
 
-# TRYING TO FIXXXXXXXXXXXX THE MISTAKE
+# matching tracks
+match_tracks <- artist_trackname %>% filter(track_name %in% tracks_unique_largedf) %>% distinct(track_name, .keep_all = TRUE)
+names(match_tracks)[2] <- "trackname"
+
 artists_id_data <- artists %>% distinct(artistid, .keep_all = TRUE)
 names(artists_id_data)[2] <- "artist"
 artists_id_data$artist <- replace(artists_id_data$artist, artists_id_data$artist == "4 Hero", "4Hero")
@@ -23,19 +26,17 @@ artists_id_data <- artists_id_data[!duplicated(artists_id_data), ]
 tracks_unique <- tracks %>% group_by(artistid) %>% distinct(trackname, .keep_all = TRUE)
 artists_id_data <- artists_id_data[, -3]
 
-match_tracks_join_T <- inner_join(artists_id_data, tracks_unique, by = c("trackname", "artistid"))
-match_tracks_join_T2 <- full_join(artists_id_data, tracks_unique, by = c("trackname", "artistid"))
+# matching datasets 
+match_tracks_join_inner <- inner_join(artists_id_data, tracks_unique, by = c("trackname", "artistid"))
+match_tracks_join_full <- full_join(artists_id_data, tracks_unique, by = c("trackname", "artistid"))
 
-# matching tracks 
-match_tracks <- artist_trackname %>% filter(track_name %in% tracks_unique_largedf) %>% distinct(track_name, .keep_all = TRUE)
-names(match_tracks)[2] <- "trackname"
-
-match_tracks <- inner_join(match_tracks, tracks, by = "trackname")
-match_tracks <- match_tracks[, -3]
-match_tracks <- match_tracks[!duplicated(match_tracks), ]
+# remove duplicates 
+match_tracks_join_inner <- match_tracks_join_inner[!duplicated(match_tracks_join_inner), ]
+match_tracks_join_full <- match_tracks_join_full[!duplicated(match_tracks_join_full), ]
 
 # write to csv
-write.csv(match_tracks, "../../gen/temp/match_tracks.csv")
+write.csv(match_tracks_join_inner, "../../gen/temp/match_tracks_join_inner.csv")
+write.csv(match_tracks_join_full, "../../gen/temp/match_tracks_join_full.csv")
 
 # matching for artists
 match_artists <- artist_trackname %>% filter(!(track_name %in% tracks_unique_largedf))
