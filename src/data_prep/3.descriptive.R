@@ -1,10 +1,12 @@
 library(data.table)
 library(dplyr)
 library(anytime)
+library(ggplot2)
 
 # load data 
 users_1month <- fread("../../gen/temp/users_1month.csv", select = c(2, 4, 9, 11))
 userinfo <- fread("../../gen/temp/userinfo_filtered.csv")
+userdata_1k <- fread("../../data/userdata_1k.csv")
 
 ###########
 #USER INFO#
@@ -67,9 +69,9 @@ registered_strange <- userinfo %>% filter(registered > "2009-04-30")
 userinfo$registered[which(userinfo$userid %in% registered_strange$userid)] <- NA
 rm(registered_strange)
 
-###########
-#USER DATA#
-###########
+###############
+#USERS 1 MONTH#
+###############
 
 # check the amount of unique users
 length(unique(users_1month$userid))
@@ -99,3 +101,25 @@ length(unique(depechemode$userid))
 # most popular tracks
 sort(table(depechemode$track_name), decreasing = TRUE)[1:20]
 
+###########
+#USER DATA#
+###########
+
+userdata_1k <- userdata_1k[-c(1)]
+
+# timestamp to dates
+userdata_1k$date <- as.Date(userdata_1k$timestamp)
+
+# dates to total time timestamps
+userdata_1k <- userdata_1k %>% group_by(userid) %>% mutate(total_days = max(date)-min(date))
+
+# days numeric
+userdata_1k$total_days_num <- as.numeric(userdata_1k$total_days, unit = "days")
+
+# trim down data
+userdata_user_totaldays <- userdata_1k[, -c(1,3:5, 7:10)]
+userdata_user_totaldays <- userdata_user_totaldays[!duplicated(userdata_user_totaldays), ]
+
+# filter impossible values
+userdata_user_totaldays <- userdata_user_totaldays %>% filter(total_days_num <= 1541)
+ggplot(userdata_user_totaldays, aes(total_days_num)) + geom_histogram(binwidth = 30)
