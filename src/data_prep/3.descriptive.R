@@ -22,6 +22,10 @@ sum(is.na(userinfo$age))
 
 # age has too many NAs to prove valuable insights 
 
+max_age <- max(userinfo$age, na.rm = T)
+min_age <- min(userinfo$age, na.rm = T)
+mean_age <- mean(userinfo$age, na.rm = T)
+
 # checking out countries
 # defining continents 
 sa <- c("Argentina", "Brazil", "Chile", "Colombia", "Mexico", "Netherlands Antilles", "Nicaragua", "Peru",
@@ -52,12 +56,16 @@ non_western <- rbind(asia, sa, afr)
 
 # signup dates
 userinfo$registered <- anydate(userinfo$registered)
-min(userinfo$registered, na.rm = TRUE)
-max(userinfo$registered, na.rm = TRUE)
+
+min_date <- min(userinfo$registered, na.rm = TRUE)
+max_date <- max(userinfo$registered, na.rm = TRUE)
+mean_date <- mean(userinfo$registered, na.rm = TRUE)
+
 registered_strange <- userinfo %>% filter(registered > "2009-04-30")
 
 # 3 strange registered dates, replace values with NA 
 userinfo$registered[which(userinfo$userid %in% registered_strange$userid)] <- NA
+rm(registered_strange)
 
 ###########
 #USER DATA#

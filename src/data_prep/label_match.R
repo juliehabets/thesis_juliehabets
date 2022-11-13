@@ -5,14 +5,18 @@ library(data.table)
 artist_trackname <- fread("../../gen/temp/users_1month.csv", select = c(9, 11))
 artists <- fread("../../data/discogs_artists.csv", sep = "\t", select = c(1:3), quote = "")
 tracks <- fread("../../data/discogs_tracks.csv", sep = "\t", select = c(1, 4, 5), quote = "")
-
+artists_label_notrack <- fread("../../gen/temp/artists_labels_notrack.csv")
+  
 # unique values in artist & tracks
 artists_unique_largedf <- unique(artists$artistname)
 artists_unique_largedf_realname  <- unique(artists$realname)
 
 tracks_unique_largedf <- unique(tracks$trackname)
 
-# matching tracks
+#################
+#matching tracks#
+#################
+
 match_tracks <- artist_trackname %>% filter(track_name %in% tracks_unique_largedf) %>% distinct(track_name, .keep_all = TRUE)
 names(match_tracks)[2] <- "trackname"
 
@@ -38,27 +42,29 @@ match_tracks_join_full <- match_tracks_join_full[!duplicated(match_tracks_join_f
 write.csv(match_tracks_join_inner, "../../gen/temp/match_tracks_join_inner.csv")
 write.csv(match_tracks_join_full, "../../gen/temp/match_tracks_join_full.csv")
 
-# matching for artists
-match_artists <- artist_trackname %>% filter(!(track_name %in% tracks_unique_largedf))
+##################
+#matching artists#
+##################
+names(artist_trackname)[2] <- "trackname"
+
+match_artists <- artist_trackname %>% filter(!(trackname %in% tracks_unique_largedf))
 match_artists <- subset(match_artists, select = -c(2)) %>% distinct()
 
-#write.csv(match_artists, "../../gen/temp/match_artists.csv") 
-#match_artists <- fread("../../gen/temp/match_artists.csv")
+unique_artist_matchtracks <- unique(match_tracks_join_inner$artist)
+match_artists <- match_artists %>% filter(!(artist %in% unique_artist_matchtracks))
 
-match_artists <- match_artists[-1,]
-
-match_artists1 <- match_artists %>% filter(V2 %in% artists_unique_largedf)
-match_realname <- match_artists %>% filter(V2 %in% artists_unique_largedf_realname)
-match_realname <- match_realname %>% filter(!(V2 %in% match_artists1$V2))
+match_artists1 <- match_artists %>% filter(artist %in% artists_unique_largedf)
+match_realname <- match_artists %>% filter(artist %in% artists_unique_largedf_realname)
+match_realname <- match_realname %>% filter(!(artist %in% match_artists1$artist))
 
 match_artists <- rbind(match_artists1, match_realname)
 
-match_artists <- match_artists[, -1]
-names(match_artists)[1] <- "artistname"
-
 # add labels 
-match_artists <- inner_join(match_artists, artists_labels_notrack, by = "artistname")
+match_artists <- inner_join(match_artists, artists_labels_notrack, by = "artist")
 match_artists <- match_artists[, -c(2,3)]
+
+# remove duplicates
+match_artists <- match_artists[!duplicated(match_artists), ]
 
 # write to csv
 write.csv(match_artists, "../../gen/temp/match_artists.csv") 
