@@ -15,8 +15,17 @@ total_label$label <- str_replace_all(total_label$label, "[:digit:]", "")
 # remove parentheses () that were around the digits 
 total_label$label <- str_replace_all(total_label$label, "\\(\\)", "")
 
+# add spaces around | 
+total_label$label <- str_replace_all(total_label$label, "\\|", " \\| ")
+
 # remove leading and trailing spaces 
 total_label$label <- str_trim(total_label$label)
+
+# remove double spaces
+total_label$label <- str_squish(total_label$label)
+
+# removing the duplicates
+total_label <- total_label[!duplicated(total_label), ]
 
 # write to csv
 write.csv(total_label, "../../gen/temp/total_label_clean.csv")
