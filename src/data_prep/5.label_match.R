@@ -14,7 +14,7 @@ artists_unique_largedf_realname  <- unique(artists$realname)
 tracks_unique_largedf <- unique(tracks$trackname)
 
 #################
-#matching tracks#
+#Matching tracks#
 #################
 
 match_tracks <- artist_trackname %>% filter(track_name %in% tracks_unique_largedf) %>% distinct(track_name, .keep_all = TRUE)
@@ -43,7 +43,7 @@ write.csv(match_tracks_join_inner, "../../gen/temp/match_tracks_join_inner.csv")
 write.csv(match_tracks_join_full, "../../gen/temp/match_tracks_join_full.csv")
 
 ##################
-#matching artists#
+#Matching artists#
 ##################
 names(artist_trackname)[2] <- "trackname"
 

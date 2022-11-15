@@ -4,7 +4,6 @@ library(lubridate)
 
 #load data
 userdata_1k <- fread("../../data/userdata_1k.csv")
-userinfo_filtered <- fread("../../gen/temp/userinfo_filtered.csv")
 
 #remove columns 
 userdata_1k <- userdata_1k[-c(1)]
@@ -38,7 +37,7 @@ userdata_1k_1month <- userdata_1k %>% filter(months >= 1)
 #DETERMINE DATERANGE#
 #####################
 
-# check for users with 6 months total listening time
+# check for users with 1 months total listening time
 users_1m <- userdata_1k_1month %>% filter(months < 2)
 users_1m <- users_1m %>% group_by(userid) %>% mutate(mindate = min(date))
 users_1m <- users_1m %>% group_by(userid) %>% mutate(maxdate = max(date))
@@ -49,23 +48,13 @@ table(users_1m$maxdate)
 # Conclusion: dataset in April 2009 as this is a month where all have listened
 
 # remove dataset for clean environment
-rm(users_1m)
+rm(users_1m, userdata_1k_1month)
 
 ##################
 #FILTER DATERANGE#
 ##################
 
-users_1month <- userdata_1k_1month %>% filter(date >= "2009-04-01" & date <= "2009-04-30")
-
-# semi join with userinfo_filtered to obtain only users with valid gender values
-# users_1month <- semi_join(users_1month, userinfo_filtered, by = "userid") --> rm or check again
-
-
-############
-#ADD GENDER#
-############
-users_1month <- merge(users_1month, userinfo_filtered, by = "userid")
-users_1month <- users_1month[-c(11, 13:15)]
+users_1month <- userdata_1k %>% filter(date >= "2009-04-01" & date <= "2009-04-30")
 
 # write to csv
 write.csv(users_1month, file = "../../gen/temp/users_1month.csv")
