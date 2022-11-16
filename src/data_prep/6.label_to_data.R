@@ -15,7 +15,7 @@ names(match_tracks_join_full)[c(3)] <- c("track_name")
 
 match_artists <- match_artists[-1, -1]
 names(match_artists)[c(1,2)] <- c("artist","label")
-users_1month <- users_1month[, -c(1, 3:8, 10)]
+users_1month <- users_1month[, -c(1:3, 5:9, 11:17)]
 
 # no duplicate rows
 users_1month <- users_1month[!duplicated(users_1month), ]
@@ -27,7 +27,7 @@ users_1month <- users_1month[!duplicated(users_1month), ]
 users_artists <- full_join(users_1month, match_artists, by = "artist")
 
 # clean
-users_artists <- users_artists[, -c(1,4)]
+users_artists <- users_artists[, -c(4)]
 users_artists <- users_artists[!duplicated(users_artists), ]
 
 # check NAs
@@ -36,7 +36,7 @@ users_artists_nona <- users_artists %>% filter(!is.na(label))
 na_check <- users_artists_na %>% filter(!(artist %in% users_artists_nona$artist))
 
 # none of the artist NA's are in the no NA subset
-rm(na_check)
+#rm(na_check)
 
 # in case of multiple labels per song
 users_artists_nona <- users_artists_nona %>% group_by(artist, track_name) %>% count(label)
@@ -60,8 +60,8 @@ users_artists <- users_artists[!duplicated(users_artists), ]
 users_tracks <- full_join(users_1month, match_tracks_join_full, by = "track_name")
 
 # clean
-users_tracks <- users_tracks[, -c(1,4:6)]
-names(users_tracks)[c(1,3)] <- c("artist", "label")
+users_tracks <- users_tracks[, -c(3,4)]
+names(users_tracks)[c(2,3)] <- c("artist", "label")
 users_tracks <- users_tracks[!duplicated(users_tracks), ]
 
 # check NAs
