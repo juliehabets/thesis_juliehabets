@@ -6,7 +6,7 @@ artist_trackname <- fread("../../gen/temp/users_1month.csv", select = c(4, 10))
 artists <- fread("../../data/discogs_artists.csv", sep = "\t", select = c(1:3), quote = "")
 tracks <- fread("../../data/discogs_tracks.csv", sep = "\t", select = c(1, 4, 5), quote = "")
 artists_label_notrack <- fread("../../gen/temp/artists_labels_notrack.csv")
-  
+
 # unique values in artist & tracks
 artists_unique_largedf <- unique(artists$artistname)
 artists_unique_largedf_realname  <- unique(artists$realname)
@@ -31,7 +31,7 @@ artists_id_data <- artists_id_data[!duplicated(artists_id_data), ]
 tracks_unique <- tracks %>% group_by(artistid) %>% distinct(trackname, .keep_all = TRUE)
 artists_id_data <- artists_id_data[, -3]
 
-# matching datasets
+# matching datasets 
 match_tracks_join_inner <- inner_join(artists_id_data, tracks_unique, by = c("trackname", "artistid"))
 match_tracks_join_full <- full_join(artists_id_data, tracks_unique, by = c("trackname", "artistid"))
 

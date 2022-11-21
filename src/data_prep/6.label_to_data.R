@@ -7,13 +7,13 @@ match_tracks_join_inner <- fread("../../gen/temp/match_tracks_join_inner.csv")
 match_artists <- fread("../../gen/temp/match_artists.csv")
 users_1month <- fread("../../gen/temp/users_1month.csv")
 
-# clean datasets
+# clean datasets --> IPV JOIN FULL DOE JOIN INNER
 match_tracks_join_full <- match_tracks_join_full[, -1]
-match_tracks_join_inner <- match_tracks_join_inner[, -1]
-names(match_tracks_join_inner)[c(3)] <- c("track_name")
-names(match_tracks_join_full)[c(3)] <- c("track_name")
+match_tracks_join_inner <- match_tracks_join_inner[, -c(1,2,4)]
+names(match_tracks_join_inner)[c(2)] <- c("track_name")
+names(match_tracks_join_full)[c(2)] <- c("track_name")
 
-match_artists <- match_artists[-1, -1]
+match_artists <- match_artists[-1, -c(1,3)]
 names(match_artists)[c(1,2)] <- c("artist","label")
 users_1month <- users_1month[, -c(1:3, 5:9, 11:17)]
 
@@ -24,10 +24,9 @@ users_1month <- users_1month[!duplicated(users_1month), ]
 #MATCH ARTISTS#
 ###############
 
-users_artists <- full_join(users_1month, match_artists, by = "artist")
+users_artists <- inner_join(users_1month, match_artists, by = "artist")
 
 # clean
-users_artists <- users_artists[, -c(4)]
 users_artists <- users_artists[!duplicated(users_artists), ]
 
 # check NAs
@@ -57,45 +56,81 @@ users_artists <- users_artists[!duplicated(users_artists), ]
 #MATCH TRACKS#
 ##############
 
-users_tracks <- full_join(users_1month, match_tracks_join_full, by = "track_name")
+users_tracks <- inner_join(users_1month, match_tracks_join_inner, by = "track_name")
 
 # clean
-users_tracks <- users_tracks[, -c(3,4)]
+users_tracks <- users_tracks[, -3]
 names(users_tracks)[c(2,3)] <- c("artist", "label")
 users_tracks <- users_tracks[!duplicated(users_tracks), ]
 
 # check NAs
-na <- users_tracks %>% filter(is.na(label))
-no_na <- users_tracks %>% filter(!(is.na(label)))
-na_check <- na %>% filter(artist %in% no_na$artist)
+#na <- users_tracks %>% filter(is.na(label))
+#no_na <- users_tracks %>% filter(!(is.na(label)))
+#na_check <- na %>% filter(artist %in% no_na$artist)
 
 # Out of 77820 NAs in labels from users_tracks, 53844 are from artists that are represented through other songs in the dataset
 # Unique artists in NA dataset: 23716, unique artists in no NA dataset: 20449 and unique artists in the check list: 9973
 
 # impute NAs
-label_artist_count <- no_na %>% group_by(artist) %>% count(label)
-label_artist_count <- label_artist_count %>% group_by(artist) %>% mutate(max_n = max(n))
+#label_artist_count <- no_na %>% group_by(artist) %>% count(label)
+#label_artist_count <- label_artist_count %>% group_by(artist) %>% mutate(max_n = max(n))
 
 # keeping only most popular label
-label_artist_count <- label_artist_count %>% group_by(artist) %>% filter(n == max_n)
+#label_artist_count <- label_artist_count %>% group_by(artist) %>% filter(n == max_n)
 
 # keeping only 1 label per artist in case when the max counts are the same
-label_artist_count <- label_artist_count %>% group_by(artist) %>% slice(n=1)
-label_artist_count <- label_artist_count[, 1:2]
+#label_artist_count <- label_artist_count %>% group_by(artist) %>% slice(n=1)
+#label_artist_count <- label_artist_count[, 1:2]
 
 # impute NAs 
-na_check <- merge(na_check, label_artist_count, by = "artist")
-na_check <- na_check[, -3]
-names(na_check)[c(3)] <- c( "label")
+#na_check <- merge(na_check, label_artist_count, by = "artist")
+#na_check <- na_check[, -3]
+#names(na_check)[c(3)] <- c( "label")
 
 # rejoining
-users_tracks <- rbind(no_na, na, na_check)
-users_tracks <- users_tracks[!duplicated(users_tracks), ]
+#users_tracks <- rbind(no_na, na, na_check)
+#users_tracks <- users_tracks[!duplicated(users_tracks), ]
+
+#############
+# TRY FIX ###
+#############
+
+total_label <- rbind(users_artists, users_tracks)
+
+
+# find unmatching rows
+no_tracks <- anti_join(users_1month, match_tracks_join_inner, by = "track_name")
+no_tracks_yes_artists <- no_tracks %>% filter(artist %in% match_artists$artist)
+no_tracks_yes_artists2 <- no_tracks %>% filter(artist %in% match_tracks_join_inner$artist)
+# join together 
+full_tracks <- rbind(no_tracks_yes_artists, no_tracks_yes_artists2)
+full_tracks <- full_tracks[!duplicated(full_tracks), ]
+
+# so now i have matched many of the tracks that cannot be matched to tracks in the match_tracks data with artists that are either in the match_
+# track already or who are in the match_artists file 
+
+# impute NAs
+label_artist_count <- users_tracks %>% group_by(artist) %>% count(label)
+label_artist_count <- label_artist_count %>% group_by(artist) %>% mutate(max_n = max(n))
+label_artist_count <- label_artist_count %>% group_by(artist) %>% filter(n == max_n)
+label_artist_count_1 <- label_artist_count %>% group_by(artist) %>% filter(n == 1) %>% slice(n=1)
+label_artist_count_n <- label_artist_count %>% group_by(artist) %>% filter(n >1)
+label_artist_count <- rbind(label_artist_count_1, label_artist_count_n)
+label_artist_count <- label_artist_count[, 1:2]
+
+full_no_tracks <- merge(full_tracks, label_artist_count, by = "artist")
+
+users_artists_notracks <- inner_join(users_1month, full_no_tracks, by = c("track_name", "artist"))
+
+users_tracks <- rbind(users_tracks, users_artists_notracks)
+
+# so now i can use full_no_tracks to match labels to artists that are in other datasets
+
 
 #######################
 #COMBINE BOTH DATASETS#
 #######################
-
+######### HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEERE SOMETHING GOES WRONG)x
 # Add datasets together
 total_label <- users_tracks
 # filling in the label NAs from all datasets created 
