@@ -3,8 +3,8 @@ library(dplyr)
 
 users_1month <- fread("../../gen/temp/users_1month.csv", select = c(2,4,9,10,11,14))
 total_label <- fread("../../gen/temp/total_label.csv")
-artist_label_MBID <- fread("finartist_label_mbid2.csv")
-track_label_MBID <- fread("fintrack_label_mbid.csv")
+artist_label_MBID <- fread("../../gen/temp/finartist_label_mbid.csv")
+track_label_MBID <- fread("../../gen/temp/fintrack_label_mbid.csv")
 
 # clean the loaded files
 total_label <- total_label[-1, -1]
