@@ -2,17 +2,14 @@ library(data.table)
 library(dplyr)
 
 # load data 
-#match_tracks_join_full <- fread("../../gen/temp/match_tracks_join_full.csv")
-match_tracks_join_inner <- fread("../../gen/temp/match_tracks_join_inner.csv")
+match_tracks <- fread("../../gen/temp/match_tracks_join_inner.csv")
 match_artists <- fread("../../gen/temp/match_artists.csv")
 users_1month <- fread("../../gen/temp/users_1month.csv")
 artists_labels <- fread("../../gen/temp/artists_labels.csv")
 
-# clean datasets --> IPV JOIN FULL DOE JOIN INNER
-#match_tracks_join_full <- match_tracks_join_full[, -1]
-match_tracks_join_inner <- match_tracks_join_inner[, -c(1,2,4)]
-names(match_tracks_join_inner)[c(2)] <- c("track_name")
-#names(match_tracks_join_full)[c(2)] <- c("track_name")
+# clean datasets
+match_tracks <- match_tracks[, -c(1,2,4)]
+names(match_tracks)[c(2)] <- c("track_name")
 
 ##########
 #TO LOWER#
@@ -31,8 +28,8 @@ users_1month_trackartist$artist  <- tolower(users_1month_trackartist$artist)
 
 match_artists$artist  <- tolower(match_artists$artist)
 
-match_tracks_join_inner$track_name <- tolower(match_tracks_join_inner$track_name)
-match_tracks_join_inner$artist  <- tolower(match_tracks_join_inner$artist)
+match_tracks$track_name <- tolower(match_tracks$track_name)
+match_tracks$artist  <- tolower(match_tracks$artist)
 
 users_1month$track_name <- tolower(users_1month$track_name)
 users_1month$artist  <- tolower(users_1month$artist)
@@ -76,7 +73,7 @@ users_artists <- users_artists[!duplicated(users_artists), ]
 #MATCH TRACKS#
 ##############
 
-users_tracks <- inner_join(users_1month_trackartist, match_tracks_join_inner, by = "track_name")
+users_tracks <- inner_join(users_1month_trackartist, match_tracks, by = "track_name")
 
 # clean
 users_tracks <- users_tracks[, -5]
@@ -115,13 +112,13 @@ users_tracks <- users_tracks[!duplicated(users_tracks), ]
 # TRY FIX ###
 #############
 
-total_label <- rbind(users_artists, users_tracks)
+total_label <- rbind(users_artists, users_tracks) ## DEZE GEBRUIK IK VOOR LABELMATCHFINAL!!!!!!!!!!! ZO ALS IE NU IS
 
 
 # find unmatching rows
-no_tracks <- anti_join(users_1month_trackartist, match_tracks_join_inner, by = "track_name")
+no_tracks <- anti_join(users_1month_trackartist, match_tracks, by = "track_name")
 no_tracks_yes_artists <- no_tracks %>% filter(artist %in% match_artists$artist)
-no_tracks_yes_artists2 <- no_tracks %>% filter(artist %in% match_tracks_join_inner$artist)
+no_tracks_yes_artists2 <- no_tracks %>% filter(artist %in% match_tracks$artist)
 # join together 
 full_tracks <- rbind(no_tracks_yes_artists, no_tracks_yes_artists2)
 full_tracks <- full_tracks[!duplicated(full_tracks), ]
@@ -152,6 +149,7 @@ users_tracks <- rbind(users_tracks, users_artists_notracks)
 #######################
 
 total_label <- rbind(users_tracks, users_artists)
+total_label <- total_label[!duplicated(total_label), ]
 
 total_label <- left_join(users_1month, total_label, by = c("track_name", "artist"))
 
