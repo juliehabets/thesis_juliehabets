@@ -6,7 +6,7 @@ library(magrittr)
 library(ineq)
 
 # load data 
-users_1month <- fread("../../gen/temp/users_1month.csv")
+users_1month <- fread("../../gen/temp/users_1month_classified.csv")
 
 # removing columns for better overview
 users_1month <- users_1month[c(2, 8:12)]
