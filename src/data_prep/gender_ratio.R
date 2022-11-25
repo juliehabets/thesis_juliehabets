@@ -1,11 +1,12 @@
 library(dplyr)
-library(readr)
+library(data.table)
+library(tidyr)
 
 # import dataset 
-users_1month <- read_csv("../../gen/temp/users_1month.csv")
+users_1month <- fread("../../gen/temp/users_1month_classified.csv")
 
-# create separate dataset
-gender <- users_1month[-c(2, 4:5)]
+# create separate dataset with only artist, userid & gender
+gender <- users_1month[, -c(1, 3:4, 6, 8:10)]
 
 # split dataset per user
 gender_split <- split(gender, gender$userid)
@@ -28,11 +29,12 @@ gender_artist <- gender_artist[-c(1)]
 gender_artist <- 
   gender_artist %>% 
   group_by(artist, gender) %>%
-  summarise(total_count=n(), .groups = 'drop') %>% 
-  pivot_wider(names_from = gender,values_from = total_count)
+  summarise(total_count=n(), .groups = 'drop')
 
-# recoding column to make mutation easier
-names(gender_artist)[names(gender_artist) == 'NA'] <- 'none'
+gender_artist$gender[(gender_artist$gender) == ''] <- 'none'
+
+gender_artist <- gender_artist %>% 
+  group_by(artist) %>% pivot_wider(names_from = gender,values_from = total_count)
 
 # recoding NA values to 0 
 gender_artist[is.na(gender_artist)] <- 0
