@@ -4,6 +4,7 @@ library(tidyr)
 
 # import dataset 
 users_1month <- fread("../../gen/temp/users_1month_classified.csv")
+users_1month <- users_1month[, -1]
 
 # create separate dataset with only artist, userid & gender
 gender <- users_1month[, -c(1, 3:4, 6, 8:10)]
@@ -42,8 +43,16 @@ gender_artist[is.na(gender_artist)] <- 0
 # coding the gender ratios 
 gender_artist <-
   gender_artist %>% 
-  mutate(ratiofem = f/(f+m+none),
-         ratiomale = m/(f+m+none))
+  mutate(ratiofem = f/(f+m+none))
 
 # write to csv
 write.csv(gender_artist, file = "../../gen/temp/gender_ratio_artist.csv")
+
+# matching to the dataset
+gender_artist <- gender_artist[, -c(2:4)]
+
+# join with dataset
+users_1month <- full_join(users_1month, gender_artist, by = "artist")
+
+# write to csv
+write.csv(users_1month, "../../gen/temp/users_1month_allmod.csv")
