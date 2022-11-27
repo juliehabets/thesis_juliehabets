@@ -7,7 +7,7 @@ users_1month <- fread("../../gen/temp/users_1month_classified.csv")
 users_1month <- users_1month[, -1]
 
 # create separate dataset with only artist, userid & gender
-gender <- users_1month[, -c(1, 3:4, 6, 8:10)]
+gender <- users_1month[, c(1,4,6)]
 
 # split dataset per user
 gender_split <- split(gender, gender$userid)

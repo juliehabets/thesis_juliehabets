@@ -87,6 +87,18 @@ total_label_corrected$parent_label[(total_label_corrected$parent_label == 'warne
 total_label_corrected$label_type [total_label_corrected$parent_label == "major"] <- 1
 total_label_corrected$label_type [total_label_corrected$parent_label == "independent"] <- 0
 
+# most occuring label type per artist
+label_per_artist <- total_label_corrected %>% group_by(artist) %>% count(label_type)
+
+label_per_artist <- label_per_artist %>% group_by(artist) %>% mutate(max_n = max(n))
+label_per_artist <- label_per_artist %>% group_by(artist) %>% filter(n == max_n)
+label_per_artist_1 <- label_per_artist %>% group_by(artist) %>% filter(n == 1) %>% slice(n=1)
+label_per_artist_n <- label_per_artist %>% group_by(artist) %>% filter(n >1) %>% arrange(desc(n)) %>% slice(n=1)
+label_per_artist <- rbind(label_per_artist_1, label_per_artist_n)
+label_per_artist <- label_per_artist[, -c(3,4)]
+
+total_label_corrected <- total_label_corrected[, -9]
+total_label_corrected <- full_join(total_label_corrected, label_per_artist, by = "artist")
+
 # write to csv
 write.csv(total_label_corrected, "../../gen/temp/users_1month_classified.csv")
-
