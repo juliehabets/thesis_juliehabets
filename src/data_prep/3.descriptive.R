@@ -4,10 +4,12 @@ library(anytime)
 library(ggplot2)
 
 # load data 
-users_1month <- fread("../../gen/temp/users_1month.csv", select = c(2, 4, 9, 11))
-userinfo <- fread("../../gen/temp/userinfo_filtered.csv")
+users_1month <- fread("../../gen/temp/users_1month.csv", select = c(2:12))
+userinfo <- fread("../../gen/temp/userinfo_filtered.csv", select = c(2:6))
 userdata_1k <- fread("../../data/userdata_1k.csv")
 artists_labels <-fread("../../gen/temp/artists_labels.csv")
+artists <- fread("../../data/discogs_artists.csv", sep = "\t", select = c(1:3))
+tracks <- fread("../../data/discogs_tracks.csv", sep = "\t", select = c(1, 4, 5))
 
 ###########
 #USER INFO#
@@ -16,7 +18,7 @@ artists_labels <-fread("../../gen/temp/artists_labels.csv")
 # check values gender 
 table(userinfo$gender)
 # % of NA
-(71/764)*100
+(71/775)*100
 
 # check NA's for other variables
 sum(userinfo$registered == "")
@@ -91,15 +93,23 @@ max(users_1month$date)
 
 # check which artists are listened to the most
 most_popular_artists <- as.data.frame(sort(table(users_1month$artist), decreasing = TRUE)[1:50])
-(50/34191)*100
+(50/34158)*100
 
 # check out depeche mode listeners
+mandodiao <- users_1month %>% filter(artist == "Mando Diao")
+mandodiao <- merge(mandodiao, userinfo, by = "userid")
+table(mandodiao$country)
 depechemode <- users_1month %>% filter(artist == "Depeche Mode")
 
 # how many users?
+length(unique(mandodiao$userid))
 length(unique(depechemode$userid))
 
+mandodiao_users <-unique(mandodiao$userid)
+mandodiao_users <- userinfo %>% filter(userid %in% mandodiao_users)
+
 # most popular tracks
+sort(table(mandodiao$track_name), decreasing = TRUE)[1:20]
 sort(table(depechemode$track_name), decreasing = TRUE)[1:20]
 
 ###########

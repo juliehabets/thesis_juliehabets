@@ -2,17 +2,16 @@ library(data.table)
 library(dplyr)
 
 # load data 
-match_tracks <- fread("../../gen/temp/match_tracks_join_inner.csv")
-match_artists <- fread("../../gen/temp/match_artists.csv")
+match_tracks <- fread("../../gen/temp/match_tracks_join_inner.csv", select = c(3:5))
+match_artists <- fread("../../gen/temp/match_artists.csv", select = c(2,4))
 users_1month <- fread("../../gen/temp/users_1month.csv")
-artists_labels <- fread("../../gen/temp/artists_labels.csv")
+artists_labels <- fread("../../gen/temp/artists_labels.csv", select = c(2:6))
 
 # clean datasets
-match_tracks <- match_tracks[, -c(1,2,4)]
-names(match_tracks)[c(2)] <- c("track_name")
-match_artists <- match_artists[-1, -c(1,3)]
+names(match_tracks)[c(2,3)] <- c("track_name", "label")
+match_artists <- match_artists[-1,]
 names(match_artists)[c(1,2)] <- c("artist","label")
-users_1month_trackartist <- users_1month[, -c(1:3, 5:8, 12:17)]
+users_1month_trackartist <- users_1month[, -c(1:7, 12)]
 
 ##########
 #TO LOWER#
@@ -53,7 +52,7 @@ users_tracks <- inner_join(users_1month_trackartist, match_tracks, by = "track_n
 
 # clean
 users_tracks <- users_tracks[, -5]
-names(users_tracks)[c(3,5)] <- c("artist", "label")
+names(users_tracks)[c(2,5)] <- c("artist", "label")
 users_tracks <- users_tracks[!duplicated(users_tracks), ]
 
 ###############
