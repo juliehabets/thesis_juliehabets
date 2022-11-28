@@ -7,7 +7,7 @@ total_label <- fread("../../gen/temp/users_1month_complete.csv")
 
 # clean
 total_label <- total_label[-1, -1]
-names(total_label)[c(1,2,3,4,5,6,7)] <- c("userid", "track_name", "artist_MBID", "artist", "track_MBID", "gender", "label")
+names(total_label)[c(1,2,3,4,5,6,7)] <- c("userid", "artist_MBID", "artist", "track_MBID", "track_name","gender", "label")
 
 # remove digits 
 total_label$label <- str_replace_all(total_label$label, "[:digit:]", "")

@@ -1,14 +1,15 @@
 library(data.table)
 library(dplyr)
 
-users_1month <- fread("../../gen/temp/users_1month.csv", select = c(2,4,9,10,11,14))
+users_1month <- fread("../../gen/temp/users_1month.csv", select = c(2, 8:12))
+
 total_label <- fread("../../gen/temp/total_label.csv")
 artist_label_MBID <- fread("../../gen/temp/finartist_label_mbid.csv")
 track_label_MBID <- fread("../../gen/temp/fintrack_label_mbid.csv")
 
 # clean the loaded files
 total_label <- total_label[-1, -1]
-names(total_label)[c(1,2,3,4,5,6,7)] <- c("userid", "track_name", "artist_MBID", "artist", "track_MBID", "gender", "label")
+names(total_label)[c(1,2,3,4,5)] <- c("artist_MBID", "artist", "track_MBID", "track_name", "label")
 
 artist_label_MBID <- artist_label_MBID[-1,-c(1,4)]
 names(artist_label_MBID)[c(1,2,3)] <- c("artist", "artist_MBID", "label")
@@ -24,7 +25,7 @@ users_1month$artist  <- tolower(users_1month$artist)
 users_1month_trackartist <- users_1month[, c(2:5)]
 
 # match
-label_match <- users_1month_trackartist[, 3]
+label_match <- users_1month_trackartist[, 2]
 label_match <- label_match[!duplicated(label_match), ]
 
 label_match <- inner_join(label_match, total_label, by = "artist") 
@@ -65,7 +66,7 @@ na <- na[, -5]
 # try to join with the artist_label_MBID dataset
 na <- full_join(na, artist_label_MBID, by = "artist_MBID")
 na <- na[, -5]
-names(na)[3] <- "artist"
+names(na)[2] <- "artist"
 
 # bind datasets together again
 no_na <- label_match %>% filter(!(is.na(label)))
@@ -78,7 +79,7 @@ na <- na[, -5]
 # join with track_label_MBID
 na <- full_join(na, track_label_MBID, by = "track_MBID")
 na <- na[, -5]
-names(na)[1] <- "track_name"
+names(na)[4] <- "track_name"
 
 # bind datasets together again
 no_na <- label_match %>% filter(!(is.na(label)))
@@ -118,7 +119,7 @@ label_match <- label_match[!duplicated(label_match), ]
 sum(is.na(label_match$label))
 na <- label_match %>% filter(is.na(label))
 length(unique(na$artist))
-# so in total, still 20110 NAs, with 12053 unique artists missing
+# so in total, still 19859 NAs, with 11812 unique artists missing
 
 # final merge
 users_1month <- full_join(users_1month, label_match, by = c("track_name", "artist", "track_MBID", "artist_MBID"))

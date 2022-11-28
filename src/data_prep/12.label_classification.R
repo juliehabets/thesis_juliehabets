@@ -9,7 +9,7 @@ total_label <- fread("../../gen/temp/users_1month_complete_clean.csv")
 
 # clean
 total_label <- total_label[-1, -1]
-names(total_label)[c(1,2,3,4,5,6,7)] <- c("userid", "track_name", "artist_MBID", "artist", "track_MBID", "gender", "label")
+names(total_label)[c(1,2,3,4,5,6,7)] <- c("userid", "artist_MBID", "artist", "track_MBID", "track_name","gender", "label")
 #total_label <- total_label[, c(2,1,3)]
 
 # subset the non-NA labels so that the NA labels will not be counted as independent labels
@@ -35,7 +35,7 @@ total_label$label_type [total_label$parent_label == "major"] <- 1
 total_label$label_type [total_label$parent_label == "independent"] <- 0
 
 # per artist
-total_label_artist <- total_label[, c(4,7,8,9)]
+total_label_artist <- total_label[, c(3,7,8,9)]
 total_label_artist <- distinct(total_label_artist)
 
 # write to csv
@@ -50,7 +50,7 @@ total_label_corrected <- fread("../../gen/temp/users_1month_complete_clean.csv")
 
 # clean
 total_label_corrected <- total_label_corrected[-1, -1]
-names(total_label_corrected)[c(1,2,3,4,5,6,7)] <- c("userid", "track_name", "artist_MBID", "artist", "track_MBID", "gender", "label")
+names(total_label_corrected)[c(1,2,3,4,5,6,7)] <- c("userid", "artist_MBID", "artist", "track_MBID", "track_name","gender", "label")
 
 # corrections
 total_label_corrected$label <- str_replace_all(total_label_corrected$label, "Jive", "Zomba Records")

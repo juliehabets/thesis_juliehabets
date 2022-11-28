@@ -10,7 +10,7 @@ users_1month <- fread("../../gen/temp/users_1month_allmod.csv")
 gender_ratio <- fread("../../gen/temp/gender_ratio_artist.csv")
 
 # removing columns for better overview (userid, trackname, artist, gender,label_type, femratio))
-users_1month <- users_1month[, c(2, 3, 5, 7, 10, 11)]
+users_1month <- users_1month[, c(2, 4, 6, 7, 10, 11)]
 users_1month <- users_1month %>% filter(!(is.na(artist)))
 # removing columns for better overview (artist & femratio)
 gender_ratio <- gender_ratio[, c(2,6)]
@@ -52,7 +52,7 @@ users_split <- split(users_1month, users_1month$userid)
 revenue_per_user <- function(l){
   df <- as.data.frame(l)
   
-  df %>% group_by(df[3]) %>% 
+  df %>% group_by(df[2]) %>% 
     summarise(n = n()) %>% 
     mutate(freq = n/sum(n)) %>% 
     mutate(revenue_UC = freq * 9.99) %>% 
@@ -125,7 +125,7 @@ text(x = 0.12, y = 0.9, "Gini = 0.77", cex = 1.1)
 # merging all the models together
 users_PR <- users_PR[, -2]
 artist_remuneration_final <- merge((merge(users_PR, users_UC, by = "artist")), users_AGM, by = "artist")
-artist_info <- users_1month[, c(3,5)] %>% distinct()
+artist_info <- users_1month[, c(2,5)] %>% distinct()
 artist_info <- merge(artist_info, gender_ratio, by = "artist")
 
 artist_remuneration_final <- merge(artist_info, artist_remuneration_final, by = "artist")
