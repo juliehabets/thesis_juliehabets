@@ -11,7 +11,6 @@ gender_ratio <- fread("../../gen/temp/gender_ratio_artist.csv")
 
 # removing columns for better overview (userid, trackname, artist, gender,label_type, femratio))
 users_1month <- users_1month[, c(2, 4, 6, 7, 10, 11)]
-users_1month <- users_1month %>% filter(!(is.na(artist)))
 # removing columns for better overview (artist & femratio)
 gender_ratio <- gender_ratio[, c(2,6)]
 
@@ -95,7 +94,7 @@ rev_cut <- sum(dec12$revenue_AGM)*0.1
 
 # checking unique artists
 length(unique(dec3456$artist))
-artists_dec3456 <- 13768 # CHECK THIS IF DATASET CHANGES 
+artists_dec3456 <- 13664 # CHECK THIS IF DATASET CHANGES 
 
 # extra revenue per artist
 extra <- rev_cut/artists_dec3456

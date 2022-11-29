@@ -20,6 +20,7 @@ names(track_label_MBID)[c(1,2,3)] <- c("track_name", "track_MBID", "label")
 # lower the artists & tracknames to facilitate matching
 users_1month$track_name <- tolower(users_1month$track_name)
 users_1month$artist  <- tolower(users_1month$artist)
+users_1month$artist <- replace(users_1month$artist, users_1month$artist == "pussycat dolls", "the pussycat dolls")
 
 # subset to facilitate matching
 users_1month_trackartist <- users_1month[, c(2:5)]
@@ -119,7 +120,25 @@ label_match <- label_match[!duplicated(label_match), ]
 sum(is.na(label_match$label))
 na <- label_match %>% filter(is.na(label))
 length(unique(na$artist))
-# so in total, still 19859 NAs, with 11812 unique artists missing
+# so in total, still 198448 NAs, with 11811 unique artists missing
+
+# in the complete dataset, one of the artist with the most occurring NAs is buckethead/ travis dickerson,
+# white lies and g-bod. As these are large artists, these values are added as well, following
+# discogs information
+
+na_bh <- na %>% filter(artist == "buckethead / travis dickerson")
+na_bh$label <- "TDRSmusic"
+na_whl <- na %>% filter(artist == "white lies")
+na_whl$label <- "Fiction Records"
+na_gb <- na %>% filter(artist == "g-bod")
+na_gb$label <- "Parlophone"
+
+na <- na %>% filter(!(artist %in% na_bh$artist | artist %in% na_whl$artist | artist %in% na_gb$artist))
+na <- rbind(na, na_bh, na_whl, na_gb)
+
+no_na <- label_match %>% filter(!(is.na(label)))
+
+label_match <- rbind(na, no_na)
 
 # final merge
 users_1month <- full_join(users_1month, label_match, by = c("track_name", "artist", "track_MBID", "artist_MBID"))

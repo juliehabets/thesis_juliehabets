@@ -3,6 +3,7 @@ library(dplyr)
 library(DescTools)
 library(broom)
 library(ggplot2)
+library(stringr)
 
 # load data
 remuneration <- fread("../../gen/temp/artist_remuneration_final.csv", select = c(2:7))
@@ -167,11 +168,11 @@ car::vif(mlm_log, type = "predictor")
 ###########################
 
 cov <- merge(remuneration_factors, tlt, by = "artist")
-names(cov)[7] <- "tlt"
+names(cov)[6] <- "tlt"
 cov  <- merge(cov, nou, by = "artist")
-names(cov)[8] <- "nou"
+names(cov)[7] <- "nou"
 
-mlm_cov_log <- lm(revenue_log ~ model * label_type + model * ratiofem + tlt + nou, cov); summary(mlm_cov_log)
+mlm_cov_log <- lm(revenue ~ model * label_type + model * ratiofem + tlt + nou, cov); summary(mlm_cov_log)
 # R SQUARED IS AT LEAST A BIT BETTER? 
 mlm_cov_log_res <- augment(mlm_cov_log)
 
@@ -191,8 +192,8 @@ mlm_2_log <- lm(revenue_log ~ model*label_type*ratiofem + tlt_log + nou_log, cov
 
 
 # cov log
-cov_log <- cov[, -c(4,7,8)]
-mlm_cov_log2 <- lm(revenue_log ~ model * label_type + model * ratiofem + tlt_log + nou_log, cov_log); summary(mlm_cov_log2)
+cov_log <- cov[, -c(6,7)]
+mlm_cov_log2 <- lm(revenue ~ model * label_type + model * ratiofem + tlt_log + nou_log, cov_log); summary(mlm_cov_log2)
 
 mlm_cov_log_res2 <- augment(mlm_cov_log2)
 
@@ -218,7 +219,7 @@ cov_log <- cov_log %>% mutate(ratiofem = )
 lm1 <- lm(revenue_log ~  model * label_type + model * ratiofem + tlt_log, cov_log); summary(lm1)
 lm2 <- lm(revenue_log ~ model * label_type + model * ratiofem + tlt, cov); summary(lm2) #rsquared is way lower
 lm3 <- lm(revenue_log ~ model * label_type + model * ratiofem + nou, cov); summary(lm3) #r2 ^ lm2, lower lm1
-lm4 <- lm(revenue_log ~ model * label_type + model * ratiofem + nou_log, cov_log); summary(lm4)#r2 ^ lm2, lm3, lower lm1
+lm4 <- lm(revenue ~ model * label_type + model * ratiofem + nou_log, cov_log); summary(lm4)#r2 ^ lm2, lm3, lower lm1
 lm5 <- lm(revenue_log ~ model * label_type + model * ratiofem + tlt_log + nou_log, cov_log); summary(lm5) # only a teeny bit R2 added
 lm6 <- lm(revenue_log ~ model * label_type + model * ratiofem + tlt_log + nou, cov); summary(lm6)# only a teeny bit R2 added# only a teeny bit R2 added
 lm7 <- lm(revenue ~ model * label_type + model * ratiofem + tlt_log, cov); summary(lm7) # bad
@@ -226,6 +227,7 @@ lm8 <- lm(revenue~ model * label_type + model * ratiofem, remuneration_factors);
 lm1_res <- augment(lm1)
 
 plot(lm1, 1)
+plot(lm4, 1)
 plot(lm8, 1)
 
 # so when adding the covariate, there is a decreasing residual trend in scatterplot
@@ -269,8 +271,7 @@ total_sample <- rbind(total_sample, sampleartistsAGM)
 
 # Pro rata 
 users_1month <- fread("../../gen/temp/users_1month_allmod.csv")
-users_1month <- users_1month[, c(2, 3, 5, 7, 10, 11)]
-users_1month <- users_1month %>% filter(!(is.na(artist)))
+users_1month <- users_1month[, c(2:11)]
 
 users_1m_PR <- users_1month %>% filter(artist %in% sampleartistsPR$artist)
   
@@ -288,7 +289,7 @@ users_PR <-
 
 users_PR <- merge(users_PR, users_1m_PR, by = "artist")
 
-users_PR <- users_PR[, c(1,3,4)] %>% distinct() %>% mutate(model = "PR")
+users_PR <- users_PR[, c(1,3:5)] %>% distinct() %>% mutate(model = "PR")
 
 gini_PR <- Gini(users_PR$revenue)
 
@@ -316,12 +317,23 @@ users_UC_split <- lapply(users_split, revenue_per_user)
 # turn list into data frame
 unlist_UC_split <- do.call(rbind.data.frame, users_UC_split)
 row.names(unlist_UC_split) <- NULL
+unlist_UC_split <- data.frame(names = row.names(unlist_UC_split), unlist_UC_split)
 
 # aggregating the data to artist level  
 users_UC <- unlist_UC_split %>% aggregate(revenue ~ artist, sum)
 users_UC <- merge(users_UC, users_1m_UC, by = "artist")
-users_UC <- users_UC[, -c(3:7)] %>% distinct() %>% mutate(model = "UC")
+users_UC <- users_UC[, c(1:2)] %>% distinct() %>% mutate(model = "UC")
 
+# trying it something else, namely with all users
+unlist_UC_split$names <- str_replace_all(unlist_UC_split$names, "\\.[[:digit:]]", "")
+names(unlist_UC_split)[1] <- "userid"
+users_UC <- unlist_UC_split %>% aggregate(revenue ~ artist + userid, sum)
+uc_infO <- users_1m_UC[, c(3,9,10)]
+#users_UC <- merge(users_UC, uc_infO, by = "artist")
+users_UC <- users_UC %>% distinct()
+
+users_UC$model <- "UC"
+gini_UC <- Gini(users_UC$revenue)
 # gini user-centric
 gini_UC <- Gini(users_UC$revenue)
 
@@ -344,7 +356,7 @@ users_AGM <-
 
 users_AGM <- merge(users_AGM, users_1m_AGM, by = "artist")
 
-users_AGM <- users_AGM[, c(1,3,4)] %>% distinct()
+users_AGM <- users_AGM[, c(1,3:5)] %>% distinct()
 
 users_AGM <- users_AGM %>% mutate(decile = ntile(-freq, 10))
 
@@ -358,7 +370,7 @@ rev_cut <- sum(dec12$revenue)*0.1
 
 # checking unique artists
 length(unique(dec3456$artist))
-artists_dec3456 <- 4584 # CHECK THIS IF DATASET CHANGES 
+artists_dec3456 <- 1841 # CHECK THIS IF DATASET CHANGES 
 
 # extra revenue per artist
 extra <- rev_cut/artists_dec3456
@@ -370,20 +382,20 @@ dec78910 <- users_AGM %>% filter(decile %in% (7:10))
 
 # merging datasets together
 users_AGM <- rbind(dec12, dec3456, dec78910)
-users_AGM <- users_AGM[, -c(2,4)] %>% distinct() %>% mutate(model = "AGM")
+users_AGM <- users_AGM[, -c(2,5)] %>% distinct() %>% mutate(model = "AGM")
 
 # gini AGM
 gini_AGM <- Gini(users_AGM$revenue)
 
 # merging the models
 users_PR <- users_PR[, -2]
-artist_remuneration_final <- rbind(users_PR, users_UC, users_AGM)
+artist_remuneration_final <- rbind(users_PR, users_UC, users_AGM) %>% distinct()
 
 # merging all 
 gender_ratio <- fread("../../gen/temp/gender_ratio_artist.csv", select = c(2,6))
-artist_info <- users_1month[, c(3, 5,6)] %>% distinct()
+artist_info <- users_1month[, c(3, 9:10)] %>% distinct()
 
-artist_remuneration_final <- merge(artist_info, artist_remuneration_final, by = "artist")
+artist_remuneration_final <- merge(artist_info, artist_remuneration_final, by = "artist", allow.cartesian=TRUE)
 
 # MODEL ESTIMATION
 log <- artist_remuneration_final
@@ -392,12 +404,78 @@ log$model <- as.factor(log$model)
 log$model <- relevel(log$model, "PR")
 
 log <- merge(log, tlt, by = "artist")
-names(log)[6] <- "tlt"
+names(log)[7] <- "tlt"
 log$tlt <- log(log$tlt)
 log  <- merge(log, nou, by = "artist")
-names(log)[7] <- "nou"
+names(log)[8] <- "nou"
 
 lm10 <- lm(revenue ~  model * label_type + model * ratiofem + tlt, log); summary(lm10)
 plot(lm10, 1)
 
 # THIS ALSO HAS THE DOWNWARDS > SHAPE
+
+# trying with the three things separate
+# PR
+cov_log_PR <- cov_log %>% filter(model == "PR")
+
+lmPR <- lm(revenue ~  label_type + ratiofem + tlt_log, cov_log_PR); summary(lmPR)
+plot(lmPR, 1)
+
+# UC
+cov_log_UC <- cov_log %>% filter(model == "UC")
+users_us
+lmUC <- lm(revenue ~  label_type + ratiofem + tlt_log + nou_log, cov_log_UC); summary(lmUC)
+plot(lmUC, 1)
+
+# other UC
+users_UC <- merge(users_UC, tlt, by = "artist")
+names(users_UC)[7] <- "tlt"
+users_UC$tlt <- log(users_UC$tlt)
+users_UC$revenue <- log(users_UC$revenue)
+
+# write this to CSV as this looks like a good dataset & model!!
+write.csv(users_UC, "../../gen/temp/users_UC_modelgood.csv")
+
+lmUC2 <- lm(revenue ~ label_type + ratiofem + tlt + userid, users_UC); summary(lmUC2)
+plot(lmUC2)
+
+# AGM
+cov_log_AGM <- cov_log %>% filter(model == "AGM")
+
+lmAGM <- lm(revenue ~  label_type + ratiofem + tlt_log, cov_log_AGM); summary(lmAGM)
+plot(lmAGM, 1)
+
+
+# with the complete artist_remuneratioin renewed based on other UC (so log with the user id added)
+log$tlt <- log(log$tlt)
+
+#then the model
+log[is.nan(log) | log=="Inf"] = NA
+lmARF2 <- lm(revenue ~  model * label_type + model * ratiofem + tlt + userid, log); summary(lmARF2)
+
+############################
+#CONTINUING WITH BEST MODEL#
+############################
+lm1 <- lm(revenue ~  model * label_type + model * ratiofem + tlt_log , cov_log); summary(lm1)
+lm1_res <- augment(lm1)
+
+# independence
+plot(lm1, 1)
+
+# homoscedasticity
+plot(lm1, 3)
+
+# normality
+ggplot(lm1_res, aes(.resid)) + geom_histogram(aes(y = ..density..), binwidth = 5) + stat_function(fun = dnorm, args = list(mean = mean(lm1_res$.resid), sd = sd(lm1_res$.resid)), color="red", size=2)
+
+# linearity
+ggplot(lm1_res, aes(x = .fitted, y = .resid)) + geom_point() + geom_smooth()
+
+plot(lm1$fitted.values, lm1$model$BMI)
+plot(lm1, 1)
+
+## other plotting
+ggplot(lm1_res, aes(model, revenue)) +
+  geom_point() +
+  stat_smooth(method = lm, se = FALSE) +
+  geom_segment(aes(xend = model, yend = .fitted), color = "red", size = 0.3)

@@ -8,5 +8,5 @@ users_1month <- users_1month %>% filter(!(is.na(artist)))
 tlt <- users_1month %>% count(artist)
 
 # number of users
-nou <- users_1month[, c(1,4)] %>% distinct()
+nou <- users_1month[, c(1,3)] %>% distinct()
 nou <- nou %>% count(artist)

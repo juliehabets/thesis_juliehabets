@@ -2,9 +2,10 @@ library(data.table)
 library(dplyr)
 library(anytime)
 library(ggplot2)
+library(stringr)
 
 # load data 
-users_1month <- fread("../../gen/temp/users_1month.csv", select = c(2:12))
+users_1month <- fread("../../gen/temp/users_1month_allmod.csv", select = c(2:11))
 userinfo <- fread("../../gen/temp/userinfo_filtered.csv", select = c(2:6))
 userdata_1k <- fread("../../data/userdata_1k.csv")
 artists_labels <-fread("../../gen/temp/artists_labels.csv")
@@ -85,6 +86,31 @@ length(unique(users_1month$artist))
 # unique tracks in data set 
 length(unique(users_1month$track_name))
 
+# labels
+sum(is.na(users_1month$label_type))
+(33978/618540)*100
+length(unique(users_1month$label))
+
+# which kind of artists are NA
+na_label <- users_1month %>% filter(is.na(label))
+sum(str_count(na_label$artist, "dj"))
+sum(str_count(na_label$artist, "orchestra"))
+sum(str_count(na_label$artist, "symphony"))
+na_label <- na_label %>% count(artist)
+
+# label info
+labels <- data.frame(users_1month$label)
+labels <- labels %>% count(users_1month.label) %>% filter(!is.na(users_1month.label))
+
+# % of major labels/independent labels
+major_labels <- users_1month %>% filter(label_type == 1)
+(232014/618540)*100
+indie_labels <- users_1month %>% filter(label_type == 0)
+(352548/618540)*100
+
+# artists under major labels
+major_labels <- major_labels[, 3] %>% distinct
+
 # check min & max dates
 min(users_1month$date)
 max(users_1month$date)
@@ -93,24 +119,20 @@ max(users_1month$date)
 
 # check which artists are listened to the most
 most_popular_artists <- as.data.frame(sort(table(users_1month$artist), decreasing = TRUE)[1:50])
-(50/34158)*100
 
 # check out depeche mode listeners
-mandodiao <- users_1month %>% filter(artist == "Mando Diao")
-mandodiao <- merge(mandodiao, userinfo, by = "userid")
-table(mandodiao$country)
-depechemode <- users_1month %>% filter(artist == "Depeche Mode")
+ramirez <- users_1month %>% filter(artist == "ramirez")
+ramirez <- merge(ramirez, userinfo, by = "userid")
+table(ramirez$country)
 
 # how many users?
-length(unique(mandodiao$userid))
-length(unique(depechemode$userid))
+length(unique(ramirez$userid))
 
-mandodiao_users <-unique(mandodiao$userid)
-mandodiao_users <- userinfo %>% filter(userid %in% mandodiao_users)
+ramirez_users <-unique(ramirez$userid)
+ramirez_users <- userinfo %>% filter(userid %in% ramirez_users)
 
 # most popular tracks
-sort(table(mandodiao$track_name), decreasing = TRUE)[1:20]
-sort(table(depechemode$track_name), decreasing = TRUE)[1:20]
+sort(table(ramirez$track_name), decreasing = TRUE)[1:20]
 
 ###########
 #USER DATA#

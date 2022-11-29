@@ -5,6 +5,7 @@ library(tidyr)
 # import dataset 
 users_1month <- fread("../../gen/temp/users_1month_classified.csv")
 users_1month <- users_1month[, -1]
+users_1month <- users_1month %>% filter(!(is.na(userid)))
 
 # create separate dataset with only artist, userid & gender
 gender <- users_1month[, c(1,3,6)]
