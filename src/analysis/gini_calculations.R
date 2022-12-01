@@ -1,9 +1,19 @@
 library(data.table)
 library(dplyr)
 library(DescTools)
+library(ggplot2)
 
 # load data
 remuneration <- fread("../../gen/temp/artist_remuneration_final.csv", select = c(2:7))
+remuneration_spread <- fread("../../gen/temp/artist_remuneration_factors.csv", select = c(2:6))
+remuneration_spread$model <- as.factor(remuneration_spread$model)
+
+# transforming revenue to log
+remuneration$revenue_PR_log <- log(remuneration$revenue_PR)
+remuneration$revenue_UC_log <- log(remuneration$revenue_UC)
+remuneration$revenue_AGM_log <- log(remuneration$revenue_AGM)
+
+remuneration_spread$revenue_log <- log(remuneration_spread$revenue)
 
 ###################
 #GINI COEFFICIENTS#
@@ -14,8 +24,8 @@ gini_PR <- Gini(remuneration$revenue_PR)
 gini_UC <- Gini(remuneration$revenue_UC)
 gini_AGM <- Gini(remuneration$revenue_AGM)
 
-gini_total <- c(gini_PR, gini_UC, gini_AGM)
-
+gini_total <- data.frame(gini_PR, gini_UC, gini_AGM)
+gini_total <- p
 
 ###############
 #LORENZ CURVES#
@@ -45,7 +55,13 @@ legend("topleft", c("Pro Rata", "User-Centric", "AGM"), fill = c("blue", "red", 
 #####################
 #STATISTICAL TESTING#
 #####################
+# t test with revenue itself 
+test_pr_uc <- t.test(remuneration$revenue_PR_log, remuneration$revenue_UC_log,alternative="two.sided", conf.level=0.95)
+test_pr_uc$p.value
 
-t.test(remuneration$revenue_PR, remuneration$revenue_UC,alternative="two.sided",
-       conf.level=0.95)
-       
+test_pr_agm <- t.test(remuneration$revenue_PR_log, remuneration$revenue_AGM_log,alternative="two.sided", conf.level=0.95)
+test_pr_agm$p.value
+
+test_uc_agm <- t.test(remuneration$revenue_UC_log, remuneration$revenue_AGM_log,alternative="two.sided", conf.level=0.95)
+test_uc_agm$p.value
+
