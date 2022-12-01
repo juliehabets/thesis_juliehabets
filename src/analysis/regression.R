@@ -317,7 +317,7 @@ users_UC_split <- lapply(users_split, revenue_per_user)
 # turn list into data frame
 unlist_UC_split <- do.call(rbind.data.frame, users_UC_split)
 row.names(unlist_UC_split) <- NULL
-unlist_UC_split <- data.frame(names = row.names(unlist_UC_split), unlist_UC_split)
+
 
 # aggregating the data to artist level  
 users_UC <- unlist_UC_split %>% aggregate(revenue ~ artist, sum)
@@ -325,6 +325,8 @@ users_UC <- merge(users_UC, users_1m_UC, by = "artist")
 users_UC <- users_UC[, c(1:2)] %>% distinct() %>% mutate(model = "UC")
 
 # trying it something else, namely with all users
+unlist_UC_split <- do.call(rbind.data.frame, users_UC_split)
+unlist_UC_split <- data.frame(names = row.names(unlist_UC_split), unlist_UC_split)
 unlist_UC_split$names <- str_replace_all(unlist_UC_split$names, "\\.[[:digit:]]", "")
 names(unlist_UC_split)[1] <- "userid"
 users_UC <- unlist_UC_split %>% aggregate(revenue ~ artist + userid, sum)
@@ -451,6 +453,7 @@ log$tlt <- log(log$tlt)
 
 #then the model
 log[is.nan(log) | log=="Inf"] = NA
+#log <- s(log)
 lmARF2 <- lm(revenue ~  model * label_type + model * ratiofem + tlt + userid, log); summary(lmARF2)
 
 ############################

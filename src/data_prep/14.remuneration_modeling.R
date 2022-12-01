@@ -34,14 +34,6 @@ users_PR <- merge(users_PR, users_1month, by = "artist")
 
 users_PR <- users_PR[, c(1,3,4)] %>% distinct()
 
-# gini pro rata 
-gini_PR <- Gini(users_PR$revenue_PR)
-
-# lorenz curve pro rata
-plot(Lc(users_PR$revenue_PR), col = "blue", lwd = 2, main = "Lorenz Curve Pro Rata Model", 
-     xlab = "cumulative % of artists", ylab = "cumulative % of income")
-text(x = 0.12, y = 0.9, "Gini = 0.83", cex = 1.1)
-
 ##############
 #USER-CENTRIC#
 ##############
@@ -70,12 +62,6 @@ users_UC <- unlist_UC_split %>% aggregate(revenue_UC ~ artist, sum)
 users_UC <- merge(users_UC, users_1month, by = "artist")
 users_UC <- users_UC[, -c(3:7)] %>% distinct()
 
-# gini user-centric
-gini_UC <- Gini(users_UC$revenue_UC)
-# lorenz curve user-centric
-plot(Lc(users_UC$revenue_UC), col = "red", lwd = 2, main = "Lorenz Curve User-Centric Model", 
-     xlab = "cumulative % of artists", ylab = "cumulative % of income")
-text(x = 0.12, y = 0.9, "Gini = 0.87", cex = 1.1)
 
 #####################
 #ARTIST GROWTH MODEL#
@@ -108,15 +94,6 @@ dec78910 <- users_AGM %>% filter(decile %in% (7:10))
 users_AGM <- rbind(dec12, dec3456, dec78910)
 users_AGM <- users_AGM[, -c(2,4)] %>% distinct()
 
-# gini AGM
-gini_AGM <- Gini(users_AGM$revenue_AGM)
-
-# lorenz curve AGM
-plot(Lc(users_AGM$revenue_AGM), col = "green", lwd = 2, main = "Lorenz Curve AGM model", 
-     xlab = "cumulative % of artists", ylab = "cumulative % of income")
-text(x = 0.12, y = 0.9, "Gini = 0.77", cex = 1.1)
-
-
 #######################
 #NOT FINISHED HERE YET#
 #######################
@@ -139,12 +116,6 @@ names(users_AGM)[2] <- "revenue"
 
 artist_remuneration_factors <- rbind(users_PR, users_UC, users_AGM)
 artist_remuneration_factors <- merge(artist_info, artist_remuneration_factors, by = "artist")
-
-# overlaying the lorenz curves
-plot(Lc(artist_remuneration_final$revenue_PR), col = 'blue')
-lines(Lc(artist_remuneration_final$revenue_UC), col = 'red')
-lines (Lc(artist_remuneration_final$revenue_AGM), col = 'green')
-legend("topleft", c("Pro Rata", "User-Centric", "AGM"), fill = c("blue", "red", "green"))
 
 # write to csv
 write.csv(artist_remuneration_final, "../../gen/temp/artist_remuneration_final.csv")
