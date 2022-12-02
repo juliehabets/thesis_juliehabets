@@ -2,6 +2,7 @@ library(data.table)
 library(dplyr)
 library(DescTools)
 library(ggplot2)
+library(boot)
 
 # load data
 remuneration <- fread("../../gen/temp/artist_remuneration_final.csv", select = c(2:7))
@@ -72,8 +73,9 @@ ggsave("../../gen/output/lorenzcurves_all.png")
 #STATISTICAL TESTING#
 #####################
 # t test with revenue itself 
-test_pr_uc <- t.test(remuneration$revenue_PR_log, remuneration$revenue_UC_log,alternative="two.sided", conf.level=0.95)
+test_pr_uc <- t.test(remuneration$revenue_PR, remuneration$revenue_UC,alternative="two.sided", conf.level=0.95, paired = TRUE)
 test_pr_uc$p.value
+test_pr_uc
 
 test_pr_agm <- t.test(remuneration$revenue_PR_log, remuneration$revenue_AGM_log,alternative="two.sided", conf.level=0.95)
 test_pr_agm$p.value
@@ -106,3 +108,31 @@ summary(lm)
 emmeans(lm, pairwise ~ model, adjust = "bonferroni")
 
 t.test(gini~model, data = ttt, paired = TRUE)
+
+####################################################
+#BOOTSTRAPPING THE GINI TO GET CONFIDENCE INTERVALS#
+####################################################
+
+# pro rata
+boot(remuneration$revenue_PR, Gini, 500)
+y_pr <- boot(remuneration$revenue_PR, Gini, 500)
+quantile(y_pr$t, probs = c(0.025, 0.975))
+plot(density(y_pr$t), family = "serif")
+ggsave("../../gen/output/densitygini_pr.png")
+
+# user centric
+boot(remuneration$revenue_UC, Gini, 500)
+y_uc <- boot(remuneration$revenue_UC, Gini, 500)
+quantile(y_uc$t, probs = c(0.025, 0.975))
+plot(density(y_uc$t), family = "serif")
+ggsave("../../gen/output/densitygini_uc.png")
+
+# agm
+boot(remuneration$revenue_AGM, Gini, 500)
+y_agm <- boot(remuneration$revenue_AGM, Gini, 500)
+quantile(y_agm$t, probs = c(0.025, 0.975))
+plot(density(y_agm$t), family = "serif")
+ggsave("../../gen/output/densitygini_agm.png")
+
+# trying ttest
+t.test(y_pr$t, y_uc$t ,alternative="two.sided", conf.level=0.95)
