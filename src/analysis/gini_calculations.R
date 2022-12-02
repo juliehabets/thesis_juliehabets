@@ -20,9 +20,9 @@ remuneration_spread$revenue_log <- log(remuneration_spread$revenue)
 ###################
 
 # calculate the Gini's
-gini_PR <- Gini(remuneration$revenue_PR, conf.level = TRUE, na.rm = TRUE)
-gini_UC <- Gini(remuneration$revenue_UC, conf.level = TRUE, na.rm = TRUE)
-gini_AGM <- Gini(remuneration$revenue_AGM, conf.level = TRUE, na.rm = TRUE)
+gini_PR <- Gini(remuneration$revenue_PR)
+gini_UC <- Gini(remuneration$revenue_UC)
+gini_AGM <- Gini(remuneration$revenue_AGM)
 
 gini_total <- data.frame(gini_PR, gini_UC, gini_AGM)
 gini_total <- data.frame(model = c("PR", "UC", "AGM"),
@@ -38,25 +38,35 @@ summary(aov)
 ###############
 
 # pro rata
-plot(Lc(remuneration$revenue_PR), col = "blue", lwd = 2, main = "Lorenz Curve Pro Rata Model", 
-     xlab = "cumulative % of artists", ylab = "cumulative % of income")
-text(x = 0.16, y = 0.9, "Gini = 0.83", cex = 1.1)
+plot(Lc(remuneration$revenue_PR), col = "#bed6ff", 
+     lwd = 2, xlab = "cumulative % of artists", 
+     ylab = "cumulative % of income", family = "serif")
+text(x = 0.16, y = 0.9, "Gini = 0.83", cex = 1.1, family = "serif")
+ggsave("../../gen/output/lorenzcurve_pr.png")
 
 # user centric
-plot(Lc(remuneration$revenue_UC), col = "red", lwd = 2, main = "Lorenz Curve User-Centric Model", 
-     xlab = "cumulative % of artists", ylab = "cumulative % of income")
-text(x = 0.16, y = 0.9, "Gini = 0.87", cex = 1.1)
+plot(Lc(remuneration$revenue_UC), col = "red", lwd = 2, 
+     xlab = "cumulative % of artists",
+     ylab = "cumulative % of income", family = "serif")
+text(x = 0.16, y = 0.9, "Gini = 0.87", cex = 1.1, family = "serif")
+ggsave("../../gen/output/lorenzcurve_uc.png")
 
 # agm
-plot(Lc(remuneration$revenue_AGM), col = "green", lwd = 2, main = "Lorenz Curve AGM model", 
-     xlab = "cumulative % of artists", ylab = "cumulative % of income")
-text(x = 0.16, y = 0.9, "Gini = 0.77", cex = 1.1)
+plot(Lc(remuneration$revenue_AGM), col = "#FFE8BE", lwd = 2, 
+     xlab = "cumulative % of artists",
+     ylab = "cumulative % of income", family = "serif")
+text(x = 0.16, y = 0.9, "Gini = 0.77", cex = 1.1, family = "serif")
+ggsave("../../gen/output/lorenzcurve_agm.png")
 
 # overlaying the lorenz curves
-plot(Lc(remuneration$revenue_PR), col = 'blue')
+plot(Lc(remuneration$revenue_PR), col = '#bed6ff', 
+     xlab = "cumulative % of artists", 
+     ylab = "cumulative % of income", family = "serif")
 lines(Lc(remuneration$revenue_UC), col = 'red')
-lines (Lc(remuneration$revenue_AGM), col = 'green')
-legend("topleft", c("Pro Rata", "User-Centric", "AGM"), fill = c("blue", "red", "green"))
+lines (Lc(remuneration$revenue_AGM), col = '#FFE8BE')
+legend("topleft", c("Pro Rata", "User-Centric", "AGM"), 
+       fill = c("#bed6ff", "red", "#FFE8BE"))
+ggsave("../../gen/output/lorenzcurves_all.png")
 
 #####################
 #STATISTICAL TESTING#
