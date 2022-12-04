@@ -108,5 +108,16 @@ vif(mlm, type = "predictor")
 
 # all VIFS are close to 1 which is good. Also, the correlation matrix looks good
 
+#####################
+#STATISTICAL TESTING#
+#####################
+# t test with revenue itself 
+test_pr_uc <- t.test(remuneration$revenue_PR_log, remuneration$revenue_UC_log, alternative="two.sided", conf.level=0.95, paired = TRUE)
+test_pr_uc
 
+test_pr_agm <- t.test(remuneration$revenue_PR_log, remuneration$revenue_AGM_log,alternative="two.sided", conf.level=0.95, paired = TRUE)
+test_pr_agm
+
+test_agm_uc <- t.test(remuneration$revenue_AGM_log, remuneration$revenue_UC_log,alternative="two.sided", conf.level=0.95, paired = TRUE)
+test_agm_uc
 
