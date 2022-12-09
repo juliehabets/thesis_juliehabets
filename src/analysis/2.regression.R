@@ -7,6 +7,11 @@ library(jtools)
 library(car)
 library(fixest)
 library(Hmisc)
+library(lmtest)
+
+#libs for cluster
+library(miceadds)
+library(estimatr)
 
 # load data
 remuneration_factors <- fread("../../gen/temp/artist_remuneration_factors.csv", select = c(2:6))
@@ -35,13 +40,6 @@ remuneration_factors$tlt <- log(remuneration_factors$tlt)
 # estimating model + cov
 mlm <- lm(revenue ~ model * label_type + model * ratiofem + tlt, remuneration_factors); summary(mlm)
 
-# estimating model + cov
-mlm <- lm(revenue ~ model * label_type + model * ratiofem + tlt + nou, remuneration_factors); summary(mlm)
-
-#no interactions
-mlm_noint <- lm(revenue ~ model + label_type + ratiofem + tlt, remuneration_factors); summary(mlm_noint)
-plot(mlm_noint, 1)
-
 mlm <- lm(revenue ~ model * label_type + model * ratiofem + tlt, remuneration_factors); summary(mlm)
 plot(mlm, 1)
 
@@ -66,14 +64,67 @@ print(tidy(mlm_f, se='cluster', conf.int=TRUE))
 mlm <- lm(revenue ~ model * label_type + model * ratiofem + tlt, remuneration_factors); summary(mlm)
 mlm_res <- augment(mlm)
 
+mlm <- lm.cluster(revenue ~ model * label_type + model * ratiofem + tlt + artist, cluster = 'artist', data = remuneration_factors); summary(mlm)
+#mlm <- lm_robust(revenue ~ model * label_type + model * ratiofem + tlt, clusters = artist, data = remuneration_factors); summary(mlm)
+mlm_res <- augment(mlm$lm_res)
+ggplot(mlm_res, aes(x = .fitted, y = .resid, color = artist)) + geom_point()
+
 effect_plot(mlm, pred = model, interval = TRUE, plot.points = TRUE, jitter = 0.5)
+
+#trying sandwich and lmtest
+library(sandwich)
+library(lmtest)
+
+mlmcoeffs_cl <- coeftest(mlm, vcov = vcovCL, cluster = ~artist)
+
+mlmcis <- coefci(mlm, parm = coi_indices, vcov = vcovCL, cluster = ~artist)
+mlm_cl <- coeftest(mlm, vcov = vcovCL, type = "HC1", cluster = ~ artist)
+tidy(mlm_cl, conf.int = TRUE)
+
+plot(mlm_cl)
+
+# trying fixest
+library(fixest)
+model_data <- readRDS("../../gen/temp/model_data.RDS")
+
+lmf <- feols(revenue ~ model+ label_type + ratiofem + tlt
+             + model:label_type
+             + model:ratiofem
+             |
+               artist + userid,
+             data = model_data,
+             cluster = ~ {artist})
+print(tidy(lmf, se='cluster', conf.int=TRUE))
+
+lmf2 <- feols(log(revenue) ~ model+ label_type + ratiofem + log(tlt)
+              + model:label_type
+              + model:ratiofem
+              |
+                userid,
+              data = model_data, cluster = ~ {artist})
+print(tidy(lmf2, se='cluster', conf.int=TRUE))
+
+lmf3 <- feols(log(revenue) ~ model+ label_type + ratiofem + log(tlt)
+              + model:label_type
+              + model:ratiofem
+              |
+                artist,
+              data = model_data, cluster = ~ {artist})
+print(tidy(lmf3, se='cluster', conf.int=TRUE))
+plot(x= lmf3$fitted.values, y = lmf3$residuals)
+
+plot(lmf2$residuals)
+plot(x= lmf2$fitted.values, y = lmf2$residuals)
+plot(lmf2, 1)
+
+lmf2_res <- augment(lmf)
 
 #####################################
 #CHECKING THE REGRESSION ASSUMPTIONS#
 #####################################
 
 # independence
-plot(mlm, 1)
+plot(mlm$lm_res, 1)
 durbinWatsonTest(mlm)
 # p > 0.05, so the errors are not autocorralted, which means that we have not violated the independence assumption with time-based dependence
 
