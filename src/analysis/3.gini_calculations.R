@@ -75,22 +75,22 @@ ggsave("../../gen/output/lorenzcurves_all.png")
 ####################################################
 
 # pro rata
-boot(remuneration$revenue_PR, Gini, 500)
-boot_pr <- boot(remuneration$revenue_PR, Gini, 500)
+boot(remuneration$revenue_PR, Gini, 1499)
+boot_pr <- boot(remuneration$revenue_PR, Gini, 1499)
 quantile(boot_pr$t, probs = c(0.025, 0.975))
 plot(density(boot_pr$t), family = "serif")
 ggsave("../../gen/output/densitygini_pr.png")
 
 # user centric
-boot(remuneration$revenue_UC, Gini, 500)
-boot_uc <- boot(remuneration$revenue_UC, Gini, 500)
+boot(remuneration$revenue_UC, Gini, 1499)
+boot_uc <- boot(remuneration$revenue_UC, Gini, 1499)
 quantile(boot_uc$t, probs = c(0.025, 0.975))
 plot(density(boot_uc$t), family = "serif")
 ggsave("../../gen/output/densitygini_uc.png")
 
 # agm
-boot(remuneration$revenue_AGM, Gini, 500)
-boot_agm <- boot(remuneration$revenue_AGM, Gini, 500)
+boot(remuneration$revenue_AGM, Gini, 1499)
+boot_agm <- boot(remuneration$revenue_AGM, Gini, 1499)
 quantile(boot_agm$t, probs = c(0.025, 0.975))
 plot(density(boot_agm$t), family = "serif")
 ggsave("../../gen/output/densitygini_agm.png")
