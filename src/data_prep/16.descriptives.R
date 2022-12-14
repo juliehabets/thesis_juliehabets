@@ -11,6 +11,8 @@ userdata_1k <- fread("../../data/userdata_1k.csv")
 artists_labels <-fread("../../gen/temp/artists_labels.csv")
 artists <- fread("../../data/discogs_artists.csv", sep = "\t", select = c(1:3))
 tracks <- fread("../../data/discogs_tracks.csv", sep = "\t", select = c(1, 4, 5))
+artist_remuneration <- fread("../../gen/temp/artist_remuneration_final_inclna.csv", select = c(2:7))
+tlt <- fread("../../gen/temp/tlt.csv", select = c(2:3))
 
 ###########
 #USER INFO#
@@ -106,9 +108,19 @@ length(unique(users_1month$artist))
 # unique tracks in data set 
 length(unique(users_1month$track_name))
 
-# labels
+# check min & max dates
+min(users_1month$date)
+max(users_1month$date)
+
+# min & max date correspond to the time frame of the sample 
+
+##########
+##labels##
+##########
+
+# NA
 sum(is.na(users_1month$label_type))
-(33978/618540)*100
+(22498/601676)*100
 length(unique(users_1month$label))
 
 # which kind of artists are NA
@@ -117,27 +129,54 @@ sum(str_count(na_label$artist, "dj"))
 sum(str_count(na_label$artist, "orchestra"))
 sum(str_count(na_label$artist, "symphony"))
 sum(str_count(na_label$artist, "choir"))
+sum(str_count(na_label$artist, "philharmonia"))
+na_label_count <- na_label %>% count(label)
+summary(na_label_count)
+sum(na_label_count$n == 1)
+sum(na_label_count$n == 2)
 
-na_label <- na_label %>% count(artist)
+# which users listen to NA labels
+length(unique(na_label$userid))
+na_label_users <- userinfo %>% filter(userid %in% na_label$userid)
+table(na_label_users$gender)
+male <- (329/601)*100
+table(na_label_users$age)
+table(na_label_users$country)
 
-# label info
+# label info 
+# user-level
 labels <- data.frame(users_1month$label)
 labels <- labels %>% count(users_1month.label) %>% filter(!is.na(users_1month.label))
+labels_artist <- users_1month[, c(3, 7:9)] %>% distinct() %>% count(label) %>% filter(!(is.na(label)))
 
 # % of major labels/independent labels
 major_labels <- users_1month %>% filter(label_type == 1)
-(232014/618540)*100
+(232240/601676)*100
+length(unique(major_labels$label))0
 indie_labels <- users_1month %>% filter(label_type == 0)
-(352548/618540)*100
+length(unique(indie_labels$label))
+(346938/601676)*100
+(22498/601676)*100
 
-# artists under major labels
-major_labels <- major_labels[, 3] %>% distinct
+# pie chart
+pcc <- c(22498, 232240, 346938)
+pie(pcc, labels = c("NA - 3.74%", "Major label - 38.60%", "Independent label - 57.66%"), col = c("#bed6ff", "#FFE8BE", "#506B99"), family = "serif")
 
-# check min & max dates
-min(users_1month$date)
-max(users_1month$date)
+# artists under label types
+major_labels_artists <- major_labels[, 3] %>% distinct()
+indie_labels_artists <- indie_labels[, 3] %>% distinct()
+na_labels_artists <- na_label %>% count(artist)
+(6407/31735)*100
+(17287/31735)*100
+(8041/31735)*100
 
-# min & max date correspond to the time frame of the sample 
+# pie chart
+pcc <- c(8041, 6407, 17287)
+pie(pcc, labels = c("NA - 25.34%", "Major label - 20.19%", "Independent label - 54.47%"), col = c("#bed6ff", "#FFE8BE", "#506B99"), family = "serif")
+
+########################
+##artist sanity checks##
+########################
 
 # check which artists are listened to the most
 most_popular_artists <- as.data.frame(sort(table(users_1month$artist), decreasing = TRUE)[1:50])
@@ -156,6 +195,46 @@ table(justice_users$country)
 
 # most popular tracks
 sort(table(justice$track_name), decreasing = TRUE)[1:10]
+
+#######################
+##track sanity checks##
+#######################
+
+# check which artists are listened to the most
+most_popular_tracks <- rename(count(users_1month, artist, track_name), Freq = n)
+user_000865 <- users_1month %>% filter(userid == "user_000865")
+user_000865_count <-rename(count(user_000865 , artist, track_name), Freq = n)
+length(unique(user_000865$artist))
+length(unique(user_000865$track_name))
+
+#####################
+#ARTIST REMUNERATION#
+#####################
+
+artist_remuneration <- merge(artist_remuneration, tlt, by = "artist")
+names(artist_remuneration)[7] <- "tlt"
+
+#############
+##ratio fem##
+#############
+
+mean_rf <- mean(artist_remuneration$ratiofem)
+variance_rf <- var(artist_remuneration$ratiofem)
+summary(artist_remuneration$ratiofem)
+
+# plot
+ggplot(artist_remuneration, aes(x = ratiofem)) + geom_histogram(color = "#bed6ff", fill = "#bed6ff", bins = 15) + theme_light() + labs(x = "Ratio female", y = "Number of occurrences")+ theme(text = element_text(size = 12.5, family = "serif"))
+
+#######
+##tlt##
+#######
+
+mean_tlt <- mean(artist_remuneration$tlt)
+variance_tlt <- var(artist_remuneration$tlt)
+
+# plot
+ggplot(artist_remuneration, aes(x = tlt)) + geom_histogram(color = "#bed6ff", fill = "#bed6ff", bins = 100) + theme_light() + labs(x = "Times listened to", y = "Number of occurrences")+ theme(text = element_text(size = 12.5, family = "serif"))
+
 
 ###########
 #USER DATA#
