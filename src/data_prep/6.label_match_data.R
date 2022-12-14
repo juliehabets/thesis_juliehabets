@@ -9,7 +9,7 @@ artists_labels <- fread("../../gen/temp/artists_labels.csv", select = c(2:6))
 
 # clean datasets
 names(match_tracks)[c(2,3)] <- c("track_name", "label")
-match_artists <- match_artists[-1,]
+match_artists <- match_artists[-1, ]
 names(match_artists)[c(1,2)] <- c("artist","label")
 users_1month_trackartist <- users_1month[, -c(1:7, 12)]
 

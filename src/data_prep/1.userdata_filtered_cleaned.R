@@ -3722,16 +3722,6 @@ users_1month$artist <- str_replace_all(users_1month$artist, "Ｇｈｏｓｔ", "
 users_1month$artist <- str_replace_all(users_1month$artist, "Ｓａｔａｎ", "Satan")
 users_1month$artist <- str_replace_all(users_1month$artist, "Ｙｏｕｒ　Ｓｏｎｇ　Ｉｓ　Ｇｏｏｄ，Ｂｅａｔ　Ｃｒｕｓａｄｅｒｓ", "Beat Crusaders")
 
-
-
-
-# https://www.hindustantimes.com/music/rahman-floats-his-own-music-label/story-SOEmhVHtm6tdw1KCEyDe9H.html A R Rahman alles naar Sony
-# amanda wilson
-
-
-# veel djs met NA labeltype, wat ook logisch is want dit zijn vaak meer zolderkamer artiesten. verder ook veel orkesten met NA
-
-
 # write to csv
-#write.csv(users_1month, file = "../../gen/temp/users_1month.csv")
+write.csv(users_1month, file = "../../gen/temp/users_1month.csv")
 

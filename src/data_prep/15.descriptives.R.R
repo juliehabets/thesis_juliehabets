@@ -21,6 +21,11 @@ table(userinfo$gender)
 # % of NA
 (71/775)*100
 
+# bar chart
+pcdf <- c(288, 416)
+
+pie(pcdf, labels = c("Female", "Male"), col = c("#bed6ff", "#FFE8BE"), main = "Division of Gender", family = "serif")
+
 # check NA's for other variables
 sum(userinfo$registered == "")
 sum(userinfo$country == "")
@@ -32,6 +37,12 @@ max_age <- max(userinfo$age, na.rm = T)
 min_age <- min(userinfo$age, na.rm = T)
 mean_age <- mean(userinfo$age, na.rm = T)
 
+# bar chart
+ages <- userinfo %>% filter(!(is.na(age)))
+ages <- ages[ , 3]
+ggplot(ages, aes(x = age)) + geom_bar(color = "#bed6ff", fill = "#bed6ff") + theme_light() + labs(x = "User Age", y = "Number of users")+ theme(text = element_text(size = 12.5, family = "serif"))
+  
+  
 # checking out countries
 # defining continents 
 sa <- c("Argentina", "Brazil", "Chile", "Colombia", "Mexico", "Netherlands Antilles", "Nicaragua", "Peru",
@@ -59,6 +70,10 @@ afr <- userinfo %>% filter(country %in% afr)
 western <- rbind(eur, oce, na)
 non_western <- rbind(asia, sa, afr)
 
+# pie chart
+pcc <- c(4, 37, 412, 193, 21, 54)
+pie(pcc, labels = c("Africa", "Asia", "Europe", "Northern America", "Oceania", "Southern America"), col = c("#C3A56C", "#FFE8BE", "#506B99", "#bed6ff", "#FFA900", "#80AFFF"), main = "Division of User Origin", family = "serif")
+
 
 # signup dates
 userinfo$registered <- anydate(userinfo$registered)
@@ -72,6 +87,11 @@ registered_strange <- userinfo %>% filter(registered > "2009-04-30")
 # 3 strange registered dates, replace values with NA 
 userinfo$registered[which(userinfo$userid %in% registered_strange$userid)] <- NA
 rm(registered_strange)
+
+# line chart
+ggplot(userinfo %>% count(registered), aes(x = registered)) + geom_histogram(color = "#bed6ff", fill = "#bed6ff", binwidth = 30) + theme_light() + labs(x = "Register Date", y = "Number of users")+ theme(text = element_text(size = 12.5, family = "serif"))
+ 
+
 
 ###############
 #USERS 1 MONTH#
@@ -96,6 +116,8 @@ na_label <- users_1month %>% filter(is.na(label))
 sum(str_count(na_label$artist, "dj"))
 sum(str_count(na_label$artist, "orchestra"))
 sum(str_count(na_label$artist, "symphony"))
+sum(str_count(na_label$artist, "choir"))
+
 na_label <- na_label %>% count(artist)
 
 # label info
@@ -120,19 +142,20 @@ max(users_1month$date)
 # check which artists are listened to the most
 most_popular_artists <- as.data.frame(sort(table(users_1month$artist), decreasing = TRUE)[1:50])
 
-# check out depeche mode listeners
-ramirez <- users_1month %>% filter(artist == "ramirez")
-ramirez <- merge(ramirez, userinfo, by = "userid")
-table(ramirez$country)
+# check out justice listeners
+justice <- users_1month %>% filter(artist == "justice")
+justice <- merge(justice, userinfo, by = "userid")
+table(justice$country)
 
 # how many users?
-length(unique(ramirez$userid))
+length(unique(justice$userid))
 
-ramirez_users <-unique(ramirez$userid)
-ramirez_users <- userinfo %>% filter(userid %in% ramirez_users)
+justice_users <-unique(justice$userid)
+justice_users <- userinfo %>% filter(userid %in% justice_users)
+table(justice_users$country)
 
 # most popular tracks
-sort(table(ramirez$track_name), decreasing = TRUE)[1:20]
+sort(table(justice$track_name), decreasing = TRUE)[1:10]
 
 ###########
 #USER DATA#

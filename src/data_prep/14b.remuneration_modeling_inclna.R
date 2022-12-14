@@ -80,7 +80,7 @@ rev_cut <- sum(dec12$revenue_AGM)*0.1
 
 # checking unique artists
 length(unique(dec3456$artist))
-artists_dec3456 <- 13664 # CHECK THIS IF DATASET CHANGES 
+artists_dec3456 <- 12695 # CHECK THIS IF DATASET CHANGES 
 
 # extra revenue per artist
 extra <- rev_cut/artists_dec3456
@@ -118,6 +118,6 @@ artist_remuneration_factors <- rbind(users_PR, users_UC, users_AGM)
 artist_remuneration_factors <- merge(artist_info, artist_remuneration_factors, by = "artist")
 
 # write to csv
-write.csv(artist_remuneration_final, "../../gen/temp/artist_remuneration_final.csv")
-write.csv(artist_remuneration_factors, "../../gen/temp/artist_remuneration_factors.csv")
+write.csv(artist_remuneration_final, "../../gen/temp/artist_remuneration_final_inclna.csv")
+write.csv(artist_remuneration_factors, "../../gen/temp/artist_remuneration_factors_inclna.csv")
 

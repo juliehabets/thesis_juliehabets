@@ -4,8 +4,8 @@ library(DescTools)
 library(ggplot2)
 
 # load data
-remuneration <- fread("../../gen/temp/artist_remuneration_final.csv", select = c(2:7))
-remuneration_spread <- fread("../../gen/temp/artist_remuneration_factors.csv", select = c(2:6))
+remuneration <- fread("../../gen/temp/artist_remuneration_final_exclna.csv", select = c(2:7))
+remuneration_spread <- fread("../../gen/temp/artist_remuneration_factors_exclna.csv", select = c(2:6))
 remuneration_spread$model <- as.factor(remuneration_spread$model)
 remuneration_spread$model <- relevel(remuneration_spread$model, c("PR"))
 
