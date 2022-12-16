@@ -47,15 +47,6 @@ ggsave("../../gen/output/boxplot_remmodels_revenue.png")
 # remove this outlier
 remuneration_spread_no_outlier <- remuneration_spread %>% filter(!(artist == "ramirez"))
 
-# plot boxplot again
-ggplot(remuneration_spread_no_outlier,
-       aes(x = model, y = revenue_log)) +
-  geom_boxplot(fill = "#bed6ff") +
-  theme_light() + 
-  labs(x = "Remuneration models", y = "log(Revenue)") + 
-  theme(text = element_text(size = 12, family = "serif"))
-ggsave("../../gen/output/boxplot_remmodels_revenue_nooutliers.png")
-
 # violion plot
 ggplot(remuneration_spread,  aes(x = model, y = revenue_log)) +
   geom_violin(scale = "count", fill = "#bed6ff") +
@@ -77,6 +68,7 @@ max_PR <- max(remuneration$revenue_PR)
 firstqPR <- quantile(remuneration$revenue_PR, 0.25)
 thirdqPR <- quantile(remuneration$revenue_PR, 0.75)
 varPR <- var(remuneration$revenue_PR)
+sdPR <- sqrt(varPR)
 
 # user-centric
 mean_UC <- mean(remuneration$revenue_UC)
@@ -86,6 +78,7 @@ max_UC <- max(remuneration$revenue_UC)
 firstqUC <- quantile(remuneration$revenue_UC, 0.25)
 thirdqUC <- quantile(remuneration$revenue_UC, 0.75)
 varUC <- var(remuneration$revenue_UC)
+sdUC <- sqrt(varUC)
 
 # artist growth model
 mean_AGM <- mean(remuneration$revenue_AGM)
@@ -95,3 +88,4 @@ max_AGM <- max(remuneration$revenue_AGM)
 firstqAGM <- quantile(remuneration$revenue_AGM, 0.25)
 thirdqAGM <- quantile(remuneration$revenue_AGM, 0.75)
 varAGM <- var(remuneration$revenue_AGM)
+sdAGM <- sqrt(varAGM)

@@ -38,15 +38,17 @@ mlm_clus <- mlm <- lm.cluster(revenue ~ model * label_type + model * ratiofem + 
 ####################################
 plot(remuneration_factors$tlt, dnorm(remuneration_factors$tlt, mean(remuneration_factors$tlt), sd(remuneration_factors$tlt)), ylab = "Density", xlab = "Times listened to")
 
-# mean centering ?
-remuneration_factors$tlt_mc <- scale(remuneration_factors$tlt, center = T, scale = F)
-plot(remuneration_factors$tlt_mc, dnorm(remuneration_factors$tlt_mc, mean(remuneration_factors$tlt_mc), sd(remuneration_factors$tlt_mc)))
-mlm_mc <- lm.cluster(revenue ~ model * label_type + model * ratiofem + tlt_mc, cluster = 'artist', data = remuneration_factors); summary(mlm_mc)
+# box-cox ?
+b <- boxcox(lm(remuneration_factors$tlt ~ 1))
+lambda <- b$x[which.max(b$y)]
+remuneration_factors$tlt_bc <- (remuneration_factors$tlt ^ lambda - 1)/ lambda
+plot(remuneration_factors$tlt_bc, dnorm(remuneration_factors$tlt_bc, mean(remuneration_factors$tlt_bc), sd(remuneration_factors$tlt_bc)), ylab = "Density", xlab = "Times listened to box-coxed")
+mlm_bc <- lm.cluster(revenue ~ model * label_type + model * ratiofem + tlt_bc, cluster = 'artist', data = remuneration_factors); summary(mlm_bc)
 remuneration_factors <- remuneration_factors[, -7]
 
 # sqrt? 
 remuneration_factors$tlt_sqrt <- sqrt(remuneration_factors$tlt)
-plot(remuneration_factors$tlt_sqrt, dnorm(remuneration_factors$tlt_sqrt, mean(remuneration_factors$tlt_sqrt), sd(remuneration_factors$tlt_sqrt)))
+plot(remuneration_factors$tlt_sqrt, dnorm(remuneration_factors$tlt_sqrt, mean(remuneration_factors$tlt_sqrt), sd(remuneration_factors$tlt_sqrt)), ylab = "Density", xlab = "sqrt(Times listened to)")
 mlm_sqrt <- lm.cluster(revenue ~ model * label_type + model * ratiofem + tlt_sqrt, cluster = 'artist', data = remuneration_factors); summary(mlm_sqrt)
 remuneration_factors <- remuneration_factors[, -7]
 
@@ -110,7 +112,6 @@ p_value
 #CHECKING THE REGRESSION ASSUMPTIONS#
 #####################################
 
-
 # independence & linearity
 plot(mlm_exclna$lm_res, 1, family = "serif", col = "#506B99")
 
@@ -119,7 +120,12 @@ plot(mlm_exclna$lm_res, 3, family = "serif", col = "#506B99")
 
 # normality
 plot(mlm_exclna$lm_res, 2, family = "serif", col = "#506B99")
-
+ggplot(mlm_excla_res, aes(.resid)) + 
+  geom_histogram(aes(y = ..density..), binwidth = 0.5, col = "#bed6ff", fill = "#bed6ff") + 
+  stat_function(fun = dnorm, args = list(mean = mean(mlm_excla_res$.resid), sd = sd(mlm_excla_res$.resid)), color="#506B99", size=2) + 
+  theme_light() + 
+  labs(x = "Residuals", y = "Density") + 
+  theme(text = element_text(size = 12, family = "serif"))
 
 ############################
 #CHECKING MULTICOLLINEARITY#
@@ -155,3 +161,27 @@ test_pr_agm
 
 test_agm_uc <- t.test(remuneration$revenue_AGM, remuneration$revenue_UC,alternative="two.sided", conf.level=0.95, paired = TRUE)
 test_agm_uc
+
+
+##########################
+#INTERPRETATION OF COEFFS#
+##########################
+modelAGM <- (exp(mlm_exclna$lm_res$coefficients[2])-1)*100
+modelAGM
+modelUC <- (exp(mlm_exclna$lm_res$coefficients[3])-1)*100
+modelUC
+label_type <- (exp(mlm_exclna$lm_res$coefficients[4])-1)*100
+label_type
+ratiofem <- (exp(mlm_exclna$lm_res$coefficients[5])-1)*100
+ratiofem
+tlt <- (1.05^(mlm_exclna$lm_res$coefficients[6])-1)*100
+tlt
+modelAGMlabel_type <- (exp(mlm_exclna$lm_res$coefficients[7])-1)*100
+modelAGMlabel_type
+modelUClabel_type <- (exp(mlm_exclna$lm_res$coefficients[8])-1)*100
+modelUClabel_type
+modelAGMratiofem <- (exp(mlm_exclna$lm_res$coefficients[9])-1)*100
+modelAGMratiofem
+modelUCratiofem <-(exp(mlm_exclna$lm_res$coefficients[10])-1)*100
+modelUCratiofem
+
