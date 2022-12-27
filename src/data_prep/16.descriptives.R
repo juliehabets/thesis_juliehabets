@@ -11,88 +11,8 @@ userdata_1k <- fread("../../data/userdata_1k.csv")
 artists_labels <-fread("../../gen/temp/artists_labels.csv")
 artists <- fread("../../data/discogs_artists.csv", sep = "\t", select = c(1:3))
 tracks <- fread("../../data/discogs_tracks.csv", sep = "\t", select = c(1, 4, 5))
-artist_remuneration <- fread("../../gen/temp/artist_remuneration_final_inclna.csv", select = c(2:7))
+artist_remuneration <- fread("../../gen/temp/artist_remuneration_final_exclna.csv", select = c(2:7))
 tlt <- fread("../../gen/temp/tlt.csv", select = c(2:3))
-
-###########
-#USER INFO#
-###########
-
-# check values gender 
-table(userinfo$gender)
-# % of NA
-(71/775)*100
-
-# bar chart
-pcdf <- c(288, 416)
-
-pie(pcdf, labels = c("Female", "Male"), col = c("#bed6ff", "#FFE8BE"), main = "Division of Gender", family = "serif")
-
-# check NA's for other variables
-sum(userinfo$registered == "")
-sum(userinfo$country == "")
-sum(is.na(userinfo$age))
-
-# age has too many NAs to prove valuable insights 
-
-max_age <- max(userinfo$age, na.rm = T)
-min_age <- min(userinfo$age, na.rm = T)
-mean_age <- mean(userinfo$age, na.rm = T)
-
-# bar chart
-ages <- userinfo %>% filter(!(is.na(age)))
-ages <- ages[ , 3]
-ggplot(ages, aes(x = age)) + geom_bar(color = "#bed6ff", fill = "#bed6ff") + theme_light() + labs(x = "User Age", y = "Number of users")+ theme(text = element_text(size = 12.5, family = "serif"))
-  
-  
-# checking out countries
-# defining continents 
-sa <- c("Argentina", "Brazil", "Chile", "Colombia", "Mexico", "Netherlands Antilles", "Nicaragua", "Peru",
-        "Trinidad and Tobago", "Venezuela")
-asia <- c("British Indian Ocean Territory", "China", "India", "Israel", "Japan", "Korea, Democratic People's Republic of",
-          "Singapore", "Thailand", "Turkey")
-eur <- c("Armenia", "Austria", "Belarus", "Belgium", "Bosnia and Herzegovina", "Bulgaria", "Croatia",
-         "Czech Republic", "Estonia", "Finland", "France", "Germany", "Greece", "Hungary", "Iceland", "Ireland",
-         "Italy", "Latvia", "Lithuania", "Macedonia", "Malta", "Netherlands", "Norway", "Poland", "Portugal",
-         "Romania", "Russian Federation", "Serbia", "Slovakia", "Slovenia", "Spain", "Sweden", "Switzerland",
-         "United Kingdom")
-oce <- c("Australia", "New Zealand", "Northern Mariana Islands")
-na <- c("Canada", "United States", "United States Minor Outlying Islands")
-afr <- c("Congo, the Democratic Republic of the", "Cote D'Ivoire", "Morocco", "Tunisia", "Zimbabwe")
-
-# applying continents 
-sa <- userinfo %>% filter(country %in% sa)
-asia <- userinfo %>% filter(country %in% asia)
-eur <- userinfo %>% filter(country %in% eur)
-oce <- userinfo %>% filter(country %in% oce)
-na <- userinfo %>% filter(country %in% na)
-afr <- userinfo %>% filter(country %in% afr)
-
-# grouping 
-western <- rbind(eur, oce, na)
-non_western <- rbind(asia, sa, afr)
-
-# pie chart
-pcc <- c(4, 37, 412, 193, 21, 54)
-pie(pcc, labels = c("Africa", "Asia", "Europe", "Northern America", "Oceania", "Southern America"), col = c("#C3A56C", "#FFE8BE", "#506B99", "#bed6ff", "#FFA900", "#80AFFF"), main = "Division of User Origin", family = "serif")
-
-
-# signup dates
-userinfo$registered <- anydate(userinfo$registered)
-
-min_date <- min(userinfo$registered, na.rm = TRUE)
-max_date <- max(userinfo$registered, na.rm = TRUE)
-mean_date <- mean(userinfo$registered, na.rm = TRUE)
-
-registered_strange <- userinfo %>% filter(registered > "2009-04-30")
-
-# 3 strange registered dates, replace values with NA 
-userinfo$registered[which(userinfo$userid %in% registered_strange$userid)] <- NA
-rm(registered_strange)
-
-# line chart
-ggplot(userinfo %>% count(registered), aes(x = registered)) + geom_histogram(color = "#bed6ff", fill = "#bed6ff", binwidth = 30) + theme_light() + labs(x = "Register Date", y = "Number of users")+ theme(text = element_text(size = 12.5, family = "serif"))
- 
 
 
 ###############
@@ -130,7 +50,7 @@ sum(str_count(na_label$artist, "orchestra"))
 sum(str_count(na_label$artist, "symphony"))
 sum(str_count(na_label$artist, "choir"))
 sum(str_count(na_label$artist, "philharmonia"))
-na_label_count <- na_label %>% count(label)
+na_label_count <- na_label %>% count(artist)
 summary(na_label_count)
 sum(na_label_count$n == 1)
 sum(na_label_count$n == 2)
@@ -174,6 +94,20 @@ na_labels_artists <- na_label %>% count(artist)
 pcc <- c(8041, 6407, 17287)
 pie(pcc, labels = c("NA - 25.34%", "Major label - 20.19%", "Independent label - 54.47%"), col = c("#bed6ff", "#FFE8BE", "#506B99"), family = "serif")
 
+#####################################
+#CHECK AND REMOVE LABEL NA FROM DATA#
+#####################################
+check_na <- users_1month %>% filter(is.na(label))
+check_na <- check_na[, 1]
+check_na <- check_na %>% distinct()
+
+users_1month_exclna <- users_1month %>% filter(!(is.na(label)))
+check_na <- check_na %>% filter(!(userid %in% users_1month_exclna$userid))
+na_users <- users_1month %>% filter(userid %in% check_na$userid)
+
+users_1month <- users_1month_exclna
+
+
 ########################
 ##artist sanity checks##
 ########################
@@ -210,30 +144,196 @@ length(unique(user_000865$track_name))
 #####################
 #ARTIST REMUNERATION#
 #####################
+remuneration <- fread("../../gen/temp/artist_remuneration_final_exclna.csv", select = c(2:7))
+remuneration <- merge(remuneration, tlt, by = "artist")
+names(remuneration)[7] <- "tlt"
 
-artist_remuneration <- merge(artist_remuneration, tlt, by = "artist")
-names(artist_remuneration)[7] <- "tlt"
+##############
+#descriptives#
+##############
 
-#############
-##ratio fem##
-#############
+summary(remuneration$label_type)
+summary(remuneration$ratiofem)
+summary(remuneration$tlt)
+summary(remuneration$revenue_PR)
+summary(remuneration$revenue_AGM)
+summary(remuneration$revenue_UC)
 
-mean_rf <- mean(artist_remuneration$ratiofem)
-variance_rf <- var(artist_remuneration$ratiofem)
-summary(artist_remuneration$ratiofem)
+length(unique(users_1month$label))
+length(unique(remuneration$artist))
+# number of tracks is the amount of rows from most_popular_tracks, as this counts the unique matches of artist & song
+
+# share of streams artist 
+popular_10 <- as.data.frame(sort(table(users_1month$artist), decreasing = TRUE)[1:10])
+popular_10 <- users_1month %>% filter(users_1month$artist %in% popular_10$Var1)
+popular_10 <- 30890/579178
+popular_50 <- as.data.frame(sort(table(users_1month$artist), decreasing = TRUE)[1:50])
+popular_50 <- users_1month %>% filter(users_1month$artist %in% popular_50$Var1)
+popular_50 <- 81405/579178 
+popular_100 <- as.data.frame(sort(table(users_1month$artist), decreasing = TRUE)[1:100])
+popular_100 <- users_1month %>% filter(users_1month$artist %in% popular_100$Var1)
+popular_100 <- 119722/579178 
+popular_500 <- as.data.frame(sort(table(users_1month$artist), decreasing = TRUE)[1:500])
+popular_500 <- users_1month %>% filter(users_1month$artist %in% popular_500$Var1)
+popular_500 <- 254661/579178 
+
+justice <-  5196/579178
+md <- 4692/579178
+dm <- 4301/579178
+beatles <- 3693/579178
+radiohead <- 3312/579178
+
+# share of streams tracks 
+popular_10 <- as.data.frame(sort(table(users_1month$track_name), decreasing = TRUE)[1:10])
+popular_10 <- users_1month %>% filter(users_1month$track_name %in% popular_10$Var1)
+popular_10 <- 5234/579178
+popular_50 <- as.data.frame(sort(table(users_1month$track_name), decreasing = TRUE)[1:50])
+popular_50 <- users_1month %>% filter(users_1month$track_name %in% popular_50$Var1)
+popular_50 <- 14288/579178 
+popular_100 <- as.data.frame(sort(table(users_1month$track_name), decreasing = TRUE)[1:100])
+popular_100 <- users_1month %>% filter(users_1month$track_name %in% popular_100$Var1)
+popular_100 <- 21736/579178 
+popular_500 <- as.data.frame(sort(table(users_1month$track_name), decreasing = TRUE)[1:500])
+popular_500 <- users_1month %>% filter(users_1month$track_name %in% popular_500$Var1)
+popular_500 <- 54755/579178 
+
+lj <- 686/579178
+dvno <- 645/579178
+wrong <- 589/579178
+genesis <- 525/579178
+red <- 486/579178
 
 # plot
-ggplot(artist_remuneration, aes(x = ratiofem)) + geom_histogram(color = "#bed6ff", fill = "#bed6ff", bins = 15) + theme_light() + labs(x = "Ratio female", y = "Number of occurrences")+ theme(text = element_text(size = 12.5, family = "serif"))
-
-#######
-##tlt##
-#######
-
-mean_tlt <- mean(artist_remuneration$tlt)
-variance_tlt <- var(artist_remuneration$tlt)
+ggplot(remuneration, aes(x = ratiofem)) + geom_histogram(color = "#bed6ff", fill = "#bed6ff", bins = 15) + theme_light() + labs(x = "Ratio female", y = "Number of occurrences")+ theme(text = element_text(size = 12.5, family = "serif"))
 
 # plot
-ggplot(artist_remuneration, aes(x = tlt)) + geom_histogram(color = "#bed6ff", fill = "#bed6ff", bins = 100) + theme_light() + labs(x = "Times listened to", y = "Number of occurrences")+ theme(text = element_text(size = 12.5, family = "serif"))
+ggplot(remuneration, aes(x = tlt)) + geom_histogram(color = "#bed6ff", fill = "#bed6ff", bins = 100) + theme_light() + labs(x = "Times listened to", y = "Number of occurrences")+ theme(text = element_text(size = 12.5, family = "serif"))
+
+###########
+#USER INFO#
+###########
+userinfo <- userinfo %>% filter(!(userid %in% check_na$userid))
+userinfo$registered <- anydate(userinfo$registered)
+
+# check values gender 
+table(userinfo$gender)
+# % of NA
+(70/767)*100
+
+# pie chart
+pcdf <- c(284, 413)
+
+pie(pcdf, labels = c("Female", "Male"), col = c("#bed6ff", "#FFE8BE"), family = "serif")
+
+# check NA's for other variables
+sum(userinfo$registered == "")
+sum(userinfo$country == "")
+sum(is.na(userinfo$age))
+
+# age has too many NAs to prove valuable insights 
+
+summary(userinfo$age)
+
+# bar chart
+ages <- userinfo %>% filter(!(is.na(age)))
+ages <- ages[ , 3]
+ggplot(ages, aes(x = age)) + geom_bar(color = "#bed6ff", fill = "#bed6ff") + theme_light() + labs(x = "User Age", y = "Number of users")+ theme(text = element_text(size = 12.5, family = "serif"))
+
+
+# checking out countries
+# defining continents 
+sa <- c("Argentina", "Brazil", "Chile", "Colombia", "Mexico", "Netherlands Antilles", "Nicaragua", "Peru",
+        "Trinidad and Tobago", "Venezuela")
+asia <- c("British Indian Ocean Territory", "China", "India", "Israel", "Japan", "Korea, Democratic People's Republic of",
+          "Singapore", "Thailand", "Turkey")
+eur <- c("Armenia", "Austria", "Belarus", "Belgium", "Bosnia and Herzegovina", "Bulgaria", "Croatia",
+         "Czech Republic", "Estonia", "Finland", "France", "Germany", "Greece", "Hungary", "Iceland", "Ireland",
+         "Italy", "Latvia", "Lithuania", "Macedonia", "Malta", "Netherlands", "Norway", "Poland", "Portugal",
+         "Romania", "Russian Federation", "Serbia", "Slovakia", "Slovenia", "Spain", "Sweden", "Switzerland",
+         "United Kingdom")
+oce <- c("Australia", "New Zealand", "Northern Mariana Islands")
+na <- c("Canada", "United States", "United States Minor Outlying Islands")
+afr <- c("Congo, the Democratic Republic of the", "Cote D'Ivoire", "Morocco", "Tunisia", "Zimbabwe")
+
+# applying continents 
+sa <- userinfo %>% filter(country %in% sa)
+asia <- userinfo %>% filter(country %in% asia)
+eur <- userinfo %>% filter(country %in% eur)
+oce <- userinfo %>% filter(country %in% oce)
+na <- userinfo %>% filter(country %in% na)
+afr <- userinfo %>% filter(country %in% afr)
+
+# grouping 
+western <- rbind(eur, oce, na)
+non_western <- rbind(asia, sa, afr)
+
+# pie chart
+pcc <- c(4, 37, 407, 190, 21, 54)
+pie(pcc, labels = c("Africa", "Asia", "Europe", "Northern America", "Oceania", "Southern America"), col = c("#C3A56C", "#FFE8BE", "#506B99", "#bed6ff", "#FFA900", "#80AFFF"), family = "serif")
+
+
+# signup dates
+min_date <- min(userinfo$registered, na.rm = TRUE)
+max_date <- max(userinfo$registered, na.rm = TRUE)
+mean_date <- mean(userinfo$registered, na.rm = TRUE)
+
+registered_strange <- userinfo %>% filter(registered > "2009-04-30")
+
+# 3 strange registered dates, replace values with NA 
+userinfo$registered[which(userinfo$userid %in% registered_strange$userid)] <- NA
+rm(registered_strange)
+
+min_date <- min(userinfo$registered, na.rm = TRUE)
+max_date <- max(userinfo$registered, na.rm = TRUE)
+mean_date <- mean(userinfo$registered, na.rm = TRUE)
+
+# line chart
+ggplot(userinfo %>% count(registered), aes(x = registered)) + geom_histogram(color = "#bed6ff", fill = "#bed6ff", binwidth = 30) + theme_light() + labs(x = "Register Date", y = "Number of users")+ theme(text = element_text(size = 12.5, family = "serif"))
+
+
+# make descriptive info table for chapter 3
+sa <- c("Argentina", "Brazil", "Chile", "Colombia", "Mexico", "Netherlands Antilles", "Nicaragua", "Peru",
+        "Trinidad and Tobago", "Venezuela")
+asia <- c("British Indian Ocean Territory", "China", "India", "Israel", "Japan", "Korea, Democratic People's Republic of",
+          "Singapore", "Thailand", "Turkey")
+eur <- c("Armenia", "Austria", "Belarus", "Belgium", "Bosnia and Herzegovina", "Bulgaria", "Croatia",
+         "Czech Republic", "Estonia", "Finland", "France", "Germany", "Greece", "Hungary", "Iceland", "Ireland",
+         "Italy", "Latvia", "Lithuania", "Macedonia", "Malta", "Netherlands", "Norway", "Poland", "Portugal",
+         "Romania", "Russian Federation", "Serbia", "Slovakia", "Slovenia", "Spain", "Sweden", "Switzerland",
+         "United Kingdom")
+oce <- c("Australia", "New Zealand", "Northern Mariana Islands")
+na <- c("Canada", "United States", "United States Minor Outlying Islands")
+afr <- c("Congo, the Democratic Republic of the", "Cote D'Ivoire", "Morocco", "Tunisia", "Zimbabwe")
+
+userinfo_dummied <- userinfo
+userinfo_dummied$gender[userinfo_dummied$gender == ''] <- NA
+userinfo_dummied$gender[userinfo_dummied$gender == 'f'] <- 1
+userinfo_dummied$gender[userinfo_dummied$gender == 'm'] <- 0
+userinfo_dummied$gender <- as.numeric(userinfo_dummied$gender)
+
+userinfo_dummied$sa[userinfo_dummied$country %in% sa] <- 1
+userinfo_dummied$sa[!(userinfo_dummied$country %in% sa)] <- 0
+userinfo_dummied$asia[userinfo_dummied$country %in% asia] <- 1
+userinfo_dummied$asia[!(userinfo_dummied$country %in% asia)] <- 0
+userinfo_dummied$eur[userinfo_dummied$country %in% eur] <- 1
+userinfo_dummied$eur[!(userinfo_dummied$country %in% eur)] <- 0
+userinfo_dummied$oce[userinfo_dummied$country %in% oce] <- 1
+userinfo_dummied$oce[!(userinfo_dummied$country %in% oce)] <- 0
+userinfo_dummied$na[userinfo_dummied$country %in% na] <- 1
+userinfo_dummied$na[!(userinfo_dummied$country %in% na)] <- 0
+userinfo_dummied$afr[userinfo_dummied$country %in% afr] <- 1
+userinfo_dummied$afr[!(userinfo_dummied$country %in% afr)] <- 0
+
+# descriptives
+summary(userinfo_dummied$gender)
+summary(userinfo_dummied$age)
+summary(userinfo_dummied$sa)
+summary(userinfo_dummied$asia)
+summary(userinfo_dummied$eur)
+summary(userinfo_dummied$oce)
+summary(userinfo_dummied$na)
+summary(userinfo_dummied$afr)
+summary(userinfo$registered)
 
 
 ###########
