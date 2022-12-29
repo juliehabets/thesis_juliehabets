@@ -35,31 +35,31 @@ summary(aov)
 plot(Lc(remuneration$revenue_PR), col = "#bed6ff", 
      lwd = 2, xlab = "cumulative % of artists", 
      ylab = "cumulative % of income", family = "serif")
-text(x = 0.16, y = 0.9, "Gini = 0.81170", cex = 1.1, family = "serif")
+text(x = 0.16, y = 0.9, "Gini = 0.812", cex = 1.1, family = "serif")
 ggsave("../../gen/output/lorenzcurve_pr.png")
 
 # user centric
 plot(Lc(remuneration$revenue_UC), col = "#506B99", lwd = 2, 
      xlab = "cumulative % of artists",
      ylab = "cumulative % of income", family = "serif")
-text(x = 0.16, y = 0.9, "Gini = 0.84881", cex = 1.1, family = "serif")
+text(x = 0.16, y = 0.9, "Gini = 0.849", cex = 1.1, family = "serif")
 ggsave("../../gen/output/lorenzcurve_uc.png")
 
 # agm
 plot(Lc(remuneration$revenue_AGM), col = "#FFE8BE", lwd = 2, 
      xlab = "cumulative % of artists",
      ylab = "cumulative % of income", family = "serif")
-text(x = 0.16, y = 0.9, "Gini = 0.75544", cex = 1.1, family = "serif")
+text(x = 0.16, y = 0.9, "Gini = 0.755", cex = 1.1, family = "serif")
 ggsave("../../gen/output/lorenzcurve_agm.png")
 
 # overlaying the lorenz curves
 plot(Lc(remuneration$revenue_PR), col = '#bed6ff', 
      xlab = "cumulative % of artists", 
      ylab = "cumulative % of income", family = "serif")
-lines(Lc(remuneration$revenue_UC), col = '#506B99')
 lines (Lc(remuneration$revenue_AGM), col = '#FFE8BE')
-legend("topleft", c("Pro rata", "User-centric", "Artist growth model"), 
-       fill = c("#bed6ff", "#506B99", "#FFE8BE"))
+lines(Lc(remuneration$revenue_UC), col = '#506B99')
+legend("topleft", c("Pro rata", "Artist growth model", "User-centric"), 
+       fill = c("#bed6ff", "#FFE8BE", "#506B99"))
 ggsave("../../gen/output/lorenzcurves_all.png")
 
 

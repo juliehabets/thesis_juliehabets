@@ -6,6 +6,10 @@ library(ggplot2)
 # load data
 remuneration <- fread("../../gen/temp/artist_remuneration_final_exclna.csv", select = c(2:7))
 remuneration_spread <- fread("../../gen/temp/artist_remuneration_factors_exclna.csv", select = c(2:6))
+tlt <- fread("../../gen/temp/tlt.csv", select = c(2:3))
+remuneration <- merge(remuneration, tlt, by = "artist")
+names(remuneration)[10] <- "tlt"
+
 remuneration_spread$model <- as.factor(remuneration_spread$model)
 remuneration_spread$model <- relevel(remuneration_spread$model, c("PR"))
 
@@ -31,6 +35,7 @@ remuneration_AGM <- remuneration[, c(1:3,6)]
 most_AGM <- remuneration_AGM[order(remuneration_AGM$revenue_AGM, decreasing = TRUE), ][1:10]
 least_AGM <- remuneration_AGM[order(remuneration_AGM$revenue_AGM, decreasing = FALSE), ][1:10]
 
+
 #################################
 #PLOTTING THE REVENUE ALLOCATION#
 #################################
@@ -42,10 +47,6 @@ ggplot(remuneration_spread,
   labs(x = "Remuneration models", y = "log(Revenue)") + 
   theme(text = element_text(size = 12, family = "serif"))
 ggsave("../../gen/output/boxplot_remmodels_revenue.png")
-
-# as you can see, with AGM & PR there is an outlier. 
-# remove this outlier
-remuneration_spread_no_outlier <- remuneration_spread %>% filter(!(artist == "ramirez"))
 
 # violion plot
 ggplot(remuneration_spread,  aes(x = model, y = revenue_log)) +
