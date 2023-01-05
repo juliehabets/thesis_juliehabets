@@ -14,3 +14,5 @@ To be able to run these files, two coding programs need to be installed:
 In case packages do not load, they have to be installed prior to the execution of the code. 
 
 The code should be ran according to the numeric ordering in front of the coding files. So, first 1., second 2., third, 3., etc. This system has been applied in order to create an environment as clear as possible 
+
+It is suggested to locally create two folders, named gen and data. In data, the raw data is stored and in gen, you create two subfolders: output and temp. Temp is used for temporary csv files created in the code. Output can be used to store output, such as the graphs created.
