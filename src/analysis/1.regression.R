@@ -12,7 +12,7 @@ library(miceadds)
 
 # load data
 remuneration_factors_exclna <- fread("../../gen/temp/artist_remuneration_factors_exclna.csv", select = c(2:6))
-tlt <- fread("../../gen/temp/tlt.csv", select = c(2:3))
+ts <- fread("../../gen/temp/ts.csv", select = c(2:3))
 
 # factor vars
 remuneration_factors_exclna$model <- as.factor(remuneration_factors_exclna$model)
@@ -24,13 +24,13 @@ remuneration_factors_exclna$revenue <- log(remuneration_factors_exclna$revenue)
 plot(remuneration_factors_exclna$revenue, dnorm(remuneration_factors_exclna$revenue, mean(remuneration_factors_exclna$revenue), sd(remuneration_factors_exclna$revenue)), ylab = "Density", xlab = "Revenue", family = "serif", col = "#506B99")
 
 # incl covariates
-remuneration_factors_exclna <- merge(remuneration_factors_exclna, tlt, by = "artist")
-names(remuneration_factors_exclna)[6] <- "tlt"
+remuneration_factors_exclna <- merge(remuneration_factors_exclna, ts, by = "artist")
+names(remuneration_factors_exclna)[6] <- "ts"
 
 # estimate models
 mlm_1 <- lm(revenue ~ model * label_type + model * ratiofem, data = remuneration_factors_exclna); summary(mlm_1)
-mlm_2 <- lm(revenue ~ model * label_type + model * ratiofem + tlt, data = remuneration_factors_exclna); summary(mlm_2)
-mlm_3 <- lm.cluster(revenue ~ model * label_type + model * ratiofem + tlt, cluster = 'artist', data = remuneration_factors_exclna); summary(mlm_3)
+mlm_2 <- lm(revenue ~ model * label_type + model * ratiofem + ts, data = remuneration_factors_exclna); summary(mlm_2)
+mlm_3 <- lm.cluster(revenue ~ model * label_type + model * ratiofem + ts, cluster = 'artist', data = remuneration_factors_exclna); summary(mlm_3)
 
 # get F-statistic
 summary(mlm_3$lm_res)
@@ -54,7 +54,7 @@ ggplot(mlm_excla_res, aes(.resid)) +
   stat_function(fun = dnorm, args = list(mean = mean(mlm_excla_res$.resid), sd = sd(mlm_excla_res$.resid)), color="#506B99", size=2) + 
   theme_light() + 
   labs(x = "Residuals", y = "Density") + 
-  theme(text = element_text(size = 12, family = "serif"))
+  theme(text = element_text(size = 12, family = "serif")) 
 
 ############################
 #CHECKING MULTICOLLINEARITY#
@@ -62,8 +62,8 @@ ggplot(mlm_excla_res, aes(.resid)) +
 remuneration <- fread("../../gen/temp/artist_remuneration_final_exclna.csv", select = c(2:7))
 
 # incl covariates
-remuneration <- merge(remuneration, tlt, by = "artist")
-names(remuneration)[7] <- "tlt"
+remuneration <- merge(remuneration, ts, by = "artist")
+names(remuneration)[7] <- "ts"
 
 # correlation matrix --> do this with the continuous IVs 
 rfcont <- remuneration[, c(2,3,7)]
@@ -73,29 +73,6 @@ res
 vif(mlm_3$lm_res, type = "predictor")
 
 # all VIFS are close to 1 which is good. Also, the correlation matrix looks good
-
-#####################
-#STATISTICAL TESTING#
-#####################
-
-#load data
-remuneration <- fread("../../gen/temp/artist_remuneration_final_exclna.csv", select = c(2:7))
-
-# transform revenue to log
-remuneration$revenue_PR <- log(remuneration$revenue_PR)
-remuneration$revenue_AGM <- log(remuneration$revenue_AGM)
-remuneration$revenue_UC <- log(remuneration$revenue_UC)
-
-# t test with revenue itself 
-test_pr_uc <- t.test(remuneration$revenue_PR, remuneration$revenue_UC, alternative="two.sided", conf.level=0.95, paired = TRUE)
-test_pr_uc
-
-test_pr_agm <- t.test(remuneration$revenue_PR, remuneration$revenue_AGM,alternative="two.sided", conf.level=0.95, paired = TRUE)
-test_pr_agm
-
-test_agm_uc <- t.test(remuneration$revenue_AGM, remuneration$revenue_UC,alternative="two.sided", conf.level=0.95, paired = TRUE)
-test_agm_uc
-
 
 ##########################
 #INTERPRETATION OF COEFFS#
@@ -110,8 +87,8 @@ label_type <- (exp(mlm_3$lm_res$coefficients[4])-1)*100
 label_type
 ratiofem <- (exp(mlm_3$lm_res$coefficients[5])-1)*100
 ratiofem
-tlt <- (exp(mlm_3$lm_res$coefficients[6])-1)*100
-tlt
+ts <- (exp(mlm_3$lm_res$coefficients[6])-1)*100
+ts
 modelAGMlabel_type <- (exp(mlm_3$lm_res$coefficients[7])-1)*100
 modelAGMlabel_type
 modelUClabel_type <- (exp(mlm_3$lm_res$coefficients[8])-1)*100

@@ -15,6 +15,7 @@ users_1month <- users_1month[, c(2, 4, 6, 7, 10, 11)] %>% filter(!(is.na(label_t
 # removing columns for better overview (artist & femratio)
 gender_ratio <- gender_ratio[, c(2,6)]
 
+
 ##########
 #PRO RATA#
 ##########
@@ -25,7 +26,7 @@ users_PR <-
   summarise(n = n()) %>% 
   mutate(freq = n/sum(n))
 
-total_revenue = length(unique(users_1month$userid))*9.99
+total_revenue = length(unique(users_1month$userid))*10*0.7
 
 users_PR <- 
   users_PR %>%
@@ -47,7 +48,7 @@ revenue_per_user <- function(l){
   df %>% group_by(df[2]) %>% 
     summarise(n = n()) %>% 
     mutate(freq = n/sum(n)) %>% 
-    mutate(revenue_UC = freq * 9.99) %>% 
+    mutate(revenue_UC = freq * 10 * 0.7) %>% 
     ungroup()
 }
 

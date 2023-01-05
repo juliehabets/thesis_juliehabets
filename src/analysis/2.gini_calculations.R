@@ -18,15 +18,6 @@ gini_PR <-  DescTools::Gini(remuneration$revenue_PR)
 gini_UC <-  DescTools::Gini(remuneration$revenue_UC)
 gini_AGM <-  DescTools::Gini(remuneration$revenue_AGM)
 
-gini_total <- data.frame(gini_PR, gini_UC, gini_AGM)
-gini_total <- data.frame(model = c("PR", "UC", "AGM"),
-                         gini = c(gini_PR, gini_UC, gini_AGM))
-gini_total$model <- as.factor(gini_total$model)
-gini_total$model <- relevel(gini_total$model, "PR")
-
-aov <- lm(gini ~ model, gini_total)
-summary(aov)
-
 ###############
 #LORENZ CURVES#
 ###############
@@ -71,21 +62,21 @@ ggsave("../../gen/output/lorenzcurves_all.png")
 boot(remuneration$revenue_PR,  DescTools::Gini, 1499)
 boot_pr <- boot(remuneration$revenue_PR,  DescTools::Gini, 1499)
 quantile(boot_pr$t, probs = c(0.025, 0.975))
-plot(density(boot_pr$t), family = "serif", main = "Pro rata")
+plot(density(boot_pr$t), family = "serif") #iep
 ggsave("../../gen/output/densitygini_pr.png")
 
 # user centric
 boot(remuneration$revenue_UC, DescTools::Gini, 1499)
 boot_uc <- boot(remuneration$revenue_UC, DescTools::Gini, 1499)
 quantile(boot_uc$t, probs = c(0.025, 0.975))
-plot(density(boot_uc$t), family = "serif", main = "User-centric")
+plot(density(boot_uc$t), family = "serif") #iep
 ggsave("../../gen/output/densitygini_uc.png")
 
 # agm
 boot(remuneration$revenue_AGM,  DescTools::Gini, 1499)
 boot_agm <- boot(remuneration$revenue_AGM,  DescTools::Gini, 1499)
 quantile(boot_agm$t, probs = c(0.025, 0.975))
-plot(density(boot_agm$t), family = "serif", main = "Artist growth model")
+plot(density(boot_agm$t), family = "serif") #iep
 ggsave("../../gen/output/densitygini_agm.png")
 
 #####################
